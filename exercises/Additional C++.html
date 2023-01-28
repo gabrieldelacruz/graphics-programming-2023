@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<title>Additional C++ explanations - ITU Graphics Programming</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Raleway">
+<style>
+    body,header,h1,h2 {font-family:"Raleway", Arial, sans-serif}
+	body {background-color:#f0f0f0; margin: 5%}
+	header {text-align:right; font-size:1.5em; margin: 0%}
+	h1 {text-align:center; font-weight:bold; margin: 2%}
+	h2 {margin: 0%}
+	hr {border: 1px solid grey}
+	p {margin-left: 1%}
+	code {margin: 0%}
+</style>
+<header>
+ITU Graphics Programming
+</header>
+
+<body>
+<h1>Additional C++ explanations</h1>
+
+<hr />
+<h2>Purpose of this document</h2>
+
+<p>During the weekly exercises we will be creating our own rendering library that will help you when working on your final project.</p>
+
+<p>In this library sometimes we will use code that may seem complicated, even if you already know C++. This is intentional and it was done with your best interest in mind.</p>
+
+<p>This document tries to explain some of those pieces of code, that you will find labeled in the code comments with the tag &quot;(C++)&quot;, plus the number of the section in this document.</p>
+
+<p>However, it is important to give some remarks:</p>
+
+<ul>
+	<li>This content is <b>optional</b>. We will not ask you about this during the exam and you are not required to apply those concepts during your project.</li>
+	<li>Most of the time, a full understanding of the library is not needed to complete the exercises or to implement a good project.</li>
+	<li>The use of these techniques is not arbitrary. Everything that is here is to make the library <b>easier to use</b>, even if it makes it sometimes harder to understand.</li>
+	<li>You may encounter some of these things once you start working as a programmer. It is better to be prepared.</li>
+</ul>
+
+<p>In any case, this small document is just a quick reference. Feel free to research more on your own, and please <strong>ask the teacher</strong> if you need any help.</p>
+
+<hr />
+<h2 id="Index">Index</h2>
+<ol>
+	<li><a href="#C++1">Const and non-const versions of a method</a></li>
+	<li><a href="#C++2">Type alias with <em><strong>using</strong></em> keyword</a></li>
+	<li><a href="#C++3">Class member declarations with <em><strong>using</strong></em> keyword</a></li>
+	<li><a href="#C++4">Keywords <em><strong>delete</strong></em> and <em><strong>default</strong></em> for implicit functions</a></li>
+	<li><a href="#C++5">Non-type template parameters</a></li>
+	<li><a href="#C++6">Bit-fields</a></li>
+</ol>
+
+<hr />
+<h2 id="C++1">1. Const and non-const versions of a method</h2>
+<a href="#Index">Back to index</a>
+<p><a href="https://www.cprogramming.com/tutorial/const_correctness.html">Const-correctness</a> is important for many reasons and it is hard to enforce if you don't do it from the beginning.</p>
+<p>But, sometimes, you may want to use a method both for a const and a non-const scenario. For instance, you may want to access data owned by your object to modify it (non-const) or just to read it.</p>
+<p>It is perfectly normal in those cases to overload the method 2 times, one const and one non-const.</p>
+<p>There are 2 common ways to implement such methods:</p>
+<p><ul>
+	<li>If the method is simple enough and not likely to change, we just implement it twice. An example of this would be a "getter" method.</li>
+	<li>However, if the method is not trivial, you can often see a little hack. Making use of the <strong><em>const_cast</strong></em> keyword to get a const version of <i>"this"</i> pointer, we can call the const version of the method from the non-const one. It is important that you do it in that direction, and not the other way around, because that would not be safe.</li>
+</ul></p>
+<p><strong>Sample code:</strong></p>
+<code class="language-cpp">
+<pre class="hljs" style="display: block; overflow-x: auto; padding: 0.5em; background: rgb(51, 51, 51); color: rgb(255, 255, 255);"><span class="hljs-comment" style="color: rgb(136, 136, 136);">//Case 1: Trivial method</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Window
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">inline</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> GLFWwindow* <span class="hljs-title" style="color: rgb(255, 255, 170);">GetInternalWindow</span><span class="hljs-params">()</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> </span>{ <span class="hljs-keyword" style="color: rgb(252, 194, 140);">return</span> m_window; }
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">inline</span> GLFWwindow* <span class="hljs-title" style="color: rgb(255, 255, 170);">GetInternalWindow</span><span class="hljs-params">()</span> </span>{ <span class="hljs-keyword" style="color: rgb(252, 194, 140);">return</span> m_window; }
+
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">private</span>:
+    GLFWwindow* m_window;
+};
+
+<span class="hljs-comment" style="color: rgb(136, 136, 136);">//Case 2: Non-trivial method using const_cast hack</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> ShaderUniformCollection
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">struct</span> DataUniform;
+
+    <span class="hljs-function">DataUniform&amp; <span class="hljs-title" style="color: rgb(255, 255, 170);">GetDataUniform</span><span class="hljs-params">(ShaderProgram::Location location)</span>
+    </span>{
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">//Two const_cast:</span>
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">//a) From non-const this, to const this. Always safe.</span>
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">//b) From const DataUniform, to non-const DataUniform. Usually risky, but safe in this scenario.</span>
+        <span class="hljs-keyword" style="color: rgb(252, 194, 140);">return</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const_cast</span>&lt;DataUniform&amp;&gt;(<span class="hljs-keyword" style="color: rgb(252, 194, 140);">const_cast</span>&lt;<span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> ShaderUniformCollection*&gt;(<span class="hljs-keyword" style="color: rgb(252, 194, 140);">this</span>)-&gt;GetDataUniform(location));
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> DataUniform&amp; <span class="hljs-title" style="color: rgb(255, 255, 170);">GetDataUniform</span><span class="hljs-params">(ShaderProgram::Location location)</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span>
+    </span>{
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">//Non-trivial code that we don't want to maintain twice</span>
+        <span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span> uniformIndex = m_locationDataIndex.at(location);
+        <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> DataUniform&amp; uniform = m_dataUniforms[uniformIndex];
+        <span class="hljs-keyword" style="color: rgb(252, 194, 140);">return</span> uniform;
+    }
+
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">private</span>:
+    <span class="hljs-built_in" style="color: rgb(255, 255, 170);">std</span>::<span class="hljs-built_in" style="color: rgb(255, 255, 170);">unordered_map</span>&lt;ShaderProgram::Location, <span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span>&gt; m_locationDataIndex;
+    <span class="hljs-built_in" style="color: rgb(255, 255, 170);">std</span>::<span class="hljs-built_in" style="color: rgb(255, 255, 170);">vector</span>&lt;DataUniform&gt; m_dataUniforms;
+};</pre>
+</code>
+<p><strong>Learn more:</strong></p>
+<p><a href="https://https://isocpp.org/wiki/faq/const-correctness#const-overloading">https://https://isocpp.org/wiki/faq/const-correctness#const-overloading</a></p>
+<hr />
+<h2 id="C++2">2. Type alias with <em><strong>using</strong></em> keyword</h2>
+<a href="#Index">Back to index</a>
+<p>You may recognize the keyword <em><strong>using</strong></em> from its most common use with namespaces (although it is not used for that in our library).</p>
+<p>But it also has some other applications. In this case, it is used to define a type <b>alias</b>. An alias is a name that refers to a previously defined type.</p>
+<p>Defining meaningful type aliases improves code readability and helps with future refactors.</p>
+<p>This behavior is almost identical to the classic (and most commonly used) C alternative, <strong><em>typedef</em></strong>.</p>
+<p>The main difference, and the reason why we prefer it, is that using can be used with template types.</p>
+<p><strong>Sample code:</strong></p>
+<code class="language-cpp">
+<pre class="hljs" style="display: block; overflow-x: auto; padding: 0.5em; background: rgb(51, 51, 51); color: rgb(255, 255, 255);"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Object
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Declare the type used for the object handle</span>
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">using</span> Handle = GLuint;
+...
+};</pre>
+</code>
+<p><strong>Learn more:</strong></p>
+<p><a href="https://en.cppreference.com/w/cpp/language/type_alias">https://en.cppreference.com/w/cpp/language/type_alias</a></p>
+<hr />
+<h2 id="C++3">3. Class member declarations with <em><strong>using</strong></em> keyword</h2>
+<a href="#Index">Back to index</a>
+<p>This is yet another different use of the keyword <em><strong>using</strong></em>.</p>
+<p>This time, we want to declare a member from the base class into a derived class. There are 2 reasons why we may do this in the library:</p>
+<ul>
+	<li>When we overload an inherited method, but we still want to keep the ones declared in the base class</li>
+	<li>When we want to change the access specifier from the base class.</li>
+</ul>
+<p><strong>Sample code:</strong></p>
+<code class="language-cpp">
+<pre class="hljs" style="display: block; overflow-x: auto; padding: 0.5em; background: rgb(51, 51, 51); color: rgb(255, 255, 255);"><span class="hljs-comment" style="color: rgb(136, 136, 136);">//1. When we overload an inherited method, but we still want to keep the ones declared in the base class</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> BufferObject : <span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span> Object
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Allocate the buffer, specifying the size and the usage. We can also provide initial contents</span>
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">void</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">AllocateData</span><span class="hljs-params">(<span class="hljs-keyword" style="color: rgb(252, 194, 140);">size_t</span> size, Usage usage)</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">void</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">AllocateData</span><span class="hljs-params">(<span class="hljs-built_in" style="color: rgb(255, 255, 170);">std</span>::span&lt;<span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> <span class="hljs-built_in" style="color: rgb(255, 255, 170);">std</span>::byte&gt; data, Usage usage)</span></span>;
+};
+
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> VertexBufferObject : <span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span> BufferObject
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Use the same AllocateData methods from the base class</span>
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">using</span> BufferObject::AllocateData;
+
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Additionally, provide AllocateData methods with StaticDraw as default usage</span>
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">void</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">AllocateData</span><span class="hljs-params">(<span class="hljs-keyword" style="color: rgb(252, 194, 140);">size_t</span> size)</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">void</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">AllocateData</span><span class="hljs-params">(<span class="hljs-built_in" style="color: rgb(255, 255, 170);">std</span>::span&lt;<span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> <span class="hljs-built_in" style="color: rgb(255, 255, 170);">std</span>::byte&gt; data)</span></span>;
+};
+
+<span class="hljs-comment" style="color: rgb(136, 136, 136);">//2. When we want to change the access specifier from the base class (less common)</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Base
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">void</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">Method</span><span class="hljs-params">()</span></span>;
+};
+
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Derived : <span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span> Base
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">protected</span>:
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">using</span> Base::Method;
+};</pre>
+</code>
+<p><strong>Learn more:</strong></p>
+<p><a href="https://en.cppreference.com/w/cpp/language/using_declaration">https://en.cppreference.com/w/cpp/language/using_declaration</a></p>
+<hr />
+<h2 id="C++4">4. Keywords <em><strong>delete</strong></em> and <em><strong>default</strong></em> for implicit functions</h2>
+<a href="#Index">Back to index</a>
+<p>When we create a class in C++, certain functions are <a href="https://cplusplus.com/doc/tutorial/classes2/">implicitly declared:</a></p>
+<p><ul>
+	<li>Default constructor</li>
+	<li>Destructor</li>
+	<li>Copy constructor</li>
+	<li>Copy assignment operator</li>
+	<li>Move constructor</li>
+	<li>Move assignment operator</li>
+</ul></p>
+<p>The behavior of these functions is well defined and it is valid for many classes.</p>
+<p>But, sometimes, you may want to delete some of them for specific reasons. For instance, in several classes, we are deleting both the copy constructor and the copy assignment operator to prevent copying objects of that class. You can do this with the <em><strong>delete</em></strong> keyword.</p>
+<p>You can also do the opposite: explicitly declare one of these functions while keeping their default implementation. This is useful, for instance, when you declare a constructor that takes some parameters, which disables the implicit default constructor. In this case you can declare a constructor with no parameters and use the <em><strong>default</em></strong> keyword.</p>
+<p>The syntax to do this is:</p>
+<p><ul>
+	<li>function declaration = default;</li>
+	<li>function declaration = delete;</li>
+</ul></p>
+<p><strong>Sample code:</strong></p>
+<code class="language-cpp">
+<pre class="hljs" style="display: block; overflow-x: auto; padding: 0.5em; background: rgb(51, 51, 51); color: rgb(255, 255, 255);"><span class="hljs-comment" style="color: rgb(136, 136, 136);">//Default keyword</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Rectangle
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    Rectangle (<span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span> x, <span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span> y) : width(x), height(y) {}
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Explicitly declare parameterless constructor and force default implementation</span>
+    Rectangle() = <span class="hljs-keyword" style="color: rgb(252, 194, 140);">default</span>;
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">private</span>:
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span> width, height;
+};
+
+<span class="hljs-comment" style="color: rgb(136, 136, 136);">// Delete keyword</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Object
+{
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Delete copy constructor and copy assignment operator to make the object non-copyable</span>
+    Object(<span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> Object&amp;) = <span class="hljs-keyword" style="color: rgb(252, 194, 140);">delete</span>;
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">void</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">operator</span> = (<span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> Object&amp;) = <span class="hljs-keyword" style="color: rgb(252, 194, 140);">delete</span>;
+};</pre>
+</code>
+<p><strong>Learn more:</strong></p>
+<p><a href="https://learn.microsoft.com/en-us/cpp/cpp/explicitly-defaulted-and-deleted-functions">https://learn.microsoft.com/en-us/cpp/cpp/explicitly-defaulted-and-deleted-functions</a></p>
+<hr />
+<h2 id="C++5">5. Non-type template parameters</h2>
+<a href="#Index">Back to index</a>
+<p>In this course we will assume that you already understand the basics of templates. If that is not the case, please take some time to refresh that topic. They are an important part of C++ and, as such, it is necessary to understand how they work.</p>
+<p>Most of the times, the template parameters are types, represented by the keywords <em><strong>typename</strong></em> or <em><strong>class</strong></em>. But that is not the only type of parameters that templates can take.</p>
+<p>A template parameter can be, among other things, an integer or an enum. This can be useful sometimes to specialize classes or methods based on the value of the parameter.</p>
+<p>An example of integer parameter that we will be using is the <strong>glm::vec</strong> struct, part of the glm math library. That definition is quite complex and it is out of the scope, but you will see that it allows us to have fixed vectors of different sizes (2, 3 or 4 elements) defined by the same struct. Another example is the class <strong>std::array</strong> of the standard library, that defines a fixed size array based on a template parameter.</p>
+<p>We will use enum type template parameters in some important classes of our library, and therefore it is important to understand how they work. In the library, BufferObject defines an enum with all the possible types of derived buffer objects. Then, there is a derived template class, BufferObjectBase&lt;Target&gt; that will serve as a base class for all the different specializations, based on the enum Target. This will allow each derived buffer object to return its Target, without storing it anywhere.&nbsp; Finally, we can see that VertexBufferObject derives from BufferObjectBase&lt;ArrayBuffer&gt;, which is the specialization for vertex buffers.&nbsp;</p>
+<p><strong>Sample code:</strong></p>
+<code class="language-cpp">
+<pre class="hljs" style="display: block; overflow-x: auto; padding: 0.5em; background: rgb(51, 51, 51); color: rgb(255, 255, 255);"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> BufferObject : <span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span> Object
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Buffer target: What the buffer will be used for</span>
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">enum</span> Target : GLenum
+    {
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Vertex Buffer Object</span>
+        ArrayBuffer = GL_ARRAY_BUFFER,
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Element Buffer Object</span>
+        ElementArrayBuffer = GL_ELEMENT_ARRAY_BUFFER,
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">// <span class="hljs-doctag">TODO:</span> There are more types, add them when they are supported</span>
+    };
+
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Each derived class will return its Target</span>
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">virtual</span> Target <span class="hljs-title" style="color: rgb(255, 255, 170);">GetTarget</span><span class="hljs-params">()</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> </span>= <span class="hljs-number" style="color: rgb(211, 99, 99);">0</span>;
+};
+
+<span class="hljs-comment" style="color: rgb(136, 136, 136);">//A copy of the class will be compiled for each version of the enum being used</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">template</span>&lt;BufferObject::Target T&gt;
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> BufferObjectBase : <span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span> BufferObject
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">inline</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">BufferObjectBase</span><span class="hljs-params">()</span> </span>{}
+
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Return the templated enum value T</span>
+    <span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">inline</span> Target <span class="hljs-title" style="color: rgb(255, 255, 170);">GetTarget</span><span class="hljs-params">()</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">const</span> override </span>{ <span class="hljs-keyword" style="color: rgb(252, 194, 140);">return</span> T; }
+};
+
+<span class="hljs-comment" style="color: rgb(136, 136, 136);">// Here we derive from BufferObjectBase specialized for the enum value BufferObject::ArrayBuffer</span>
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> VertexBufferObject : <span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span> BufferObjectBase&lt;BufferObject::ArrayBuffer&gt;
+{
+};
+
+<span class="hljs-function"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span> <span class="hljs-title" style="color: rgb(255, 255, 170);">main</span><span class="hljs-params">()</span>
+</span>{
+    VertexBufferObject vbo;
+    BufferObject.Target target = vbo.GetTarget(); <span class="hljs-comment" style="color: rgb(136, 136, 136);">// target value will be BufferObject::ArrayBuffer</span>
+}</pre>
+</code>
+<p><strong>Learn more:</strong></p>
+<p><a href="https://en.cppreference.com/w/cpp/language/template_parameters">https://en.cppreference.com/w/cpp/language/template_parameters</a></p>
+<hr />
+<h2 id="C++6">6. Bit-fields</h2>
+<a href="#Index">Back to index</a>
+<p>This feature is part of C language, but given that is it not frequently used, it is worth mentioning here.</p>
+<p>A bit-field allows you to specify the size in bits that a particular member variable of a struct or class should use.</p>
+<p>By placing several variables like this adjacent to each other, you can pack them into a smaller size, depending on the compiler.</p>
+<p>An example: if you know that a certain integer can only take values between 0 a 1000, you can request that it uses 10 bits (2^10 = 1024, which can contain 1000). A typical case would be to pack RGB values into a 32 bit integer: 11 for red, 11 for green, 10 for blue, for instance.</p>
+<p><strong>Sample code:</strong></p>
+<code class="language-cpp">
+<pre class="hljs" style="display: block; overflow-x: auto; padding: 0.5em; background: rgb(51, 51, 51); color: rgb(255, 255, 255);"><span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Data
+{
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">public</span>:
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Enum type to encapsulate the different types supported by OpenGL</span>
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">enum</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">class</span> Type : GLushort
+    {
+        None = GL_NONE,
+        Float = GL_FLOAT,
+        Int = GL_INT,
+        ...
+        <span class="hljs-comment" style="color: rgb(136, 136, 136);">// And more...</span>
+    };
+
+<span class="hljs-keyword" style="color: rgb(252, 194, 140);">struct</span> VertexAttribute
+{
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// Data type of the attribute. We know it already fits in 16 bit</span>
+    Data::Type m_type : <span class="hljs-number" style="color: rgb(211, 99, 99);">16</span>;
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// How many components does the attribute have. It can be 1 for scalars or 2, 3 or 4 for vectors (maximum 3 bits)</span>
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">unsigned</span> <span class="hljs-keyword" style="color: rgb(252, 194, 140);">int</span> m_components : <span class="hljs-number" style="color: rgb(211, 99, 99);">3</span>;
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// If an integer value is normalized, it is converted to a [0, 1] floating point on the GPU (only 1 bit needed)</span>
+    <span class="hljs-keyword" style="color: rgb(252, 194, 140);">bool</span> m_normalized : <span class="hljs-number" style="color: rgb(211, 99, 99);">1</span>;
+    <span class="hljs-comment" style="color: rgb(136, 136, 136);">// There is still room for more (another 12 bit) to fit into an int!</span>
+};</pre>
+</code>
+<p><strong>Learn more:</strong></p>
+<p><a href="https://en.cppreference.com/w/cpp/language/bit_field">https://en.cppreference.com/w/cpp/language/bit_field</a></p>
+<hr />
+<h2>More coming soon...</h2>
+
+</body>
+</html>
