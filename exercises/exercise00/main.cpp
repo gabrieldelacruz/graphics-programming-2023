@@ -10,8 +10,8 @@ int buildShaderProgram();
 void processInput(GLFWwindow* window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 512;
+const unsigned int SCR_HEIGHT = 512;
 
 int main()
 {
@@ -89,11 +89,28 @@ int main()
 
     // render loop
     // -----------
+    float time = 0.0f;
+    float pi = 3.1416f;
+    float speed = 0.01f;
+    float length = 0.5f * std::sqrt(2);
     while (!window.ShouldClose())
     {
         // input
         // -----
         processInput(window.GetInternalWindow());
+
+        float angle = time * speed + pi * 0.25f;
+        for (int i = 0; i < 4; ++i)
+        {
+            vertices[3 * i + 0] = std::sin(angle) * length;
+            vertices[3 * i + 1] = std::cos(angle) * length;
+            angle += pi * 0.5f;
+        }
+
+        vbo.Bind();
+        vbo.UpdateData(std::span(vertices, floatCount));
+
+        time += 0.1f;
 
         // render
         // ------
