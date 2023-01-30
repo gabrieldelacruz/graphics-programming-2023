@@ -5,6 +5,7 @@
 #include <ituGL/geometry/VertexAttribute.h>
 #include <ituGL/geometry/ElementBufferObject.h>
 #include <iostream>
+#include <array>
 
 int buildShaderProgram();
 void processInput(GLFWwindow* window);
@@ -43,17 +44,33 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // bottom - left
-         0.5f, -0.5f, 0.0f, // bottom - right
-         0.5f,  0.5f, 0.0f, // top - right
-        -0.5f,  0.5f, 0.0f  // top - left
-    };
+    const int sides = 16;
+    const float pi = 3.1416f;
+    const float length = 0.5f * std::sqrt(2);
 
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 0, 3
-    };
+    // Using std::array instead of regular arrays makes sure we don't access out of range
+    std::array<float, 3 * (sides + 1)> vertices;
+    std::array<unsigned int, 3 * sides> indices;
+
+    // first vertex centered at (0, 0, 0)
+    vertices[0] = vertices[1] = vertices[2] = 0.0f;
+
+    // Loop over 2*PI with N sides
+    float deltaAngle = 2 * pi / sides;
+    for (int i = 0; i < sides; ++i)
+    {
+        float angle = i * deltaAngle;
+        vertices[3 * i + 3] = std::sin(angle) * length;
+        vertices[3 * i + 4] = std::cos(angle) * length;
+        vertices[3 * i + 5] = 0.0f;
+
+        indices[3 * i + 0] = 0;
+        indices[3 * i + 1] = i + 1;
+        indices[3 * i + 2] = i + 2;
+    }
+
+    // Connect last index with vertex 1 to close the circle
+    indices[3 * sides - 1] = 1;
 
     VertexBufferObject vbo;
     VertexArrayObject vao;
@@ -63,13 +80,10 @@ int main()
     vao.Bind();
 
     vbo.Bind();
-    int floatCount = sizeof(vertices) / sizeof(float);
-    int vertexCount = floatCount / 3;
-    vbo.AllocateData(std::span(vertices, floatCount));
+    vbo.AllocateData<float>(std::span(vertices));
 
     ebo.Bind();
-    int indexCount = sizeof(indices) / sizeof(unsigned int);
-    ebo.AllocateData(std::span(indices, indexCount));
+    ebo.AllocateData<unsigned int>(std::span(indices));
 
     VertexAttribute position(Data::Type::Float, 3);
     vao.SetAttribute(0, position, 0);
@@ -89,28 +103,11 @@ int main()
 
     // render loop
     // -----------
-    float time = 0.0f;
-    float pi = 3.1416f;
-    float speed = 0.01f;
-    float length = 0.5f * std::sqrt(2);
     while (!window.ShouldClose())
     {
         // input
         // -----
         processInput(window.GetInternalWindow());
-
-        float angle = time * speed + pi * 0.25f;
-        for (int i = 0; i < 4; ++i)
-        {
-            vertices[3 * i + 0] = std::sin(angle) * length;
-            vertices[3 * i + 1] = std::cos(angle) * length;
-            angle += pi * 0.5f;
-        }
-
-        vbo.Bind();
-        vbo.UpdateData(std::span(vertices, floatCount));
-
-        time += 0.1f;
 
         // render
         // ------
@@ -120,7 +117,7 @@ int main()
         glUseProgram(shaderProgram);
         vao.Bind(); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         // VertexArrayObject::Unbind(); // no need to unbind it every time 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
