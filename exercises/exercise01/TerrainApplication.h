@@ -17,7 +17,12 @@ protected:
     void Cleanup() override;
 
 private:
+    void BuildShaders();
+    void UpdateOutputMode();
+
+private:
     unsigned int m_gridX, m_gridY;
+    unsigned int m_shaderProgram;
 
     // (todo) 01.1: Declare an VBO, VAO
 
