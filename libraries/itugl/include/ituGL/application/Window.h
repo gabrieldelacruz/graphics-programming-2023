@@ -30,6 +30,19 @@ public:
     // Swaps the front and back buffers of the window
     void SwapBuffers();
 
+public:
+    enum class KeyState
+    {
+        Pressed = GLFW_PRESS,
+        Released = GLFW_RELEASE,
+        Repeated = GLFW_REPEAT,
+    };
+
+    KeyState GetKeyState(int keyCode) const;
+    bool IsKeyPressed(int keyCode) const { return GetKeyState(keyCode) == KeyState::Pressed; }
+    bool IsKeyReleased(int keyCode) const { return GetKeyState(keyCode) == KeyState::Released; }
+    bool IsKeyRepeated(int keyCode) const { return GetKeyState(keyCode) == KeyState::Repeated; }
+
 private:
     // Pointer to a GLFW window object. Its lifetime should match the lifetime of this object
     GLFWwindow* m_window;

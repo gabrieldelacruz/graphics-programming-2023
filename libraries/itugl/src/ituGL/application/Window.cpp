@@ -44,3 +44,8 @@ void Window::SwapBuffers()
 {
     glfwSwapBuffers(m_window);
 }
+
+Window::KeyState Window::GetKeyState(int keyCode) const
+{
+    return static_cast<KeyState>(glfwGetKey(m_window, keyCode));
+}

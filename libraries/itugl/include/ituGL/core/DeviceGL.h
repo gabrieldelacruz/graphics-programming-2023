@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ituGL/core/Color.h>
 #include <glad/glad.h>
 
 class Window;
@@ -32,7 +33,11 @@ public:
     void PollEvents();
 
     // Clear the framebuffer with the specified color
-    void Clear(float r, float g, float b, float a);
+    inline void Clear(const Color& color) { Clear(true, color, false, 0.0, false, 0); }
+    // Clear the framebuffer with the specified color and depth
+    inline void Clear(bool clearColor, const Color& color, bool clearDepth, GLdouble depth) { Clear(clearColor, color, clearDepth, depth, false, 0); }
+    // Clear the framebuffer with the specified color, depth and stencil
+    void Clear(bool clearColor, const Color& color, bool clearDepth, GLdouble depth, bool clearStencil, GLint stencil);
 
 private:
     // Has a context been loaded? We use the context of the current window

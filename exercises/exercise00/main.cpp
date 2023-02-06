@@ -111,7 +111,7 @@ int main()
 
         // render
         // ------
-        deviceGL.Clear(0.2f, 0.3f, 0.3f, 1.0f);
+        deviceGL.Clear(Color(0.2f, 0.3f, 0.3f, 1.0f));
 
         // draw our first triangle
         glUseProgram(shaderProgram);
