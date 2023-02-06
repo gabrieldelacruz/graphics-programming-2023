@@ -17,6 +17,16 @@ public:
     int Run();
 
 protected:
+    // (C++) 1
+    // Get the OpenGL device
+    inline const DeviceGL& GetDevice() const { return m_device; }
+    inline DeviceGL& GetDevice() { return m_device; }
+
+    // (C++) 1
+    // Get the main window of the application
+    inline Window& GetMainWindow() { return m_mainWindow; }
+    inline const Window& GetMainWindow() const { return m_mainWindow; }
+
     // Get time in seconds from the start of the application
     inline float GetCurrentTime() const { return m_currentTime; }
 
@@ -51,7 +61,10 @@ private:
     void UpdateTime(float newCurrentTime);
 
 private:
-
+    // OpenGL device
+    DeviceGL m_device;
+    // Main window
+    Window m_mainWindow;
 
     // Time in seconds from the start of the application
     float m_currentTime;
