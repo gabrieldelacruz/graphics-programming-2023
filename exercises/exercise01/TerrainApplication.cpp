@@ -1,7 +1,7 @@
 #include "TerrainApplication.h"
 
-// (todo) 01.1: Include the libraries you need
-
+#include <ituGL/geometry/VertexAttribute.h>
+#include <vector>
 #include <cmath>
 #include <iostream>
 
@@ -42,19 +42,41 @@ void TerrainApplication::Initialize()
     // Build shaders and store in m_shaderProgram
     BuildShaders();
 
-    // (todo) 01.1: Create containers for the vertex position
+    // Create container for the vertex position
+    std::vector<Vector3> positions;
 
+    // Iterate over each quad
+    for (int j = 0; j < m_gridY; ++j)
+    {
+        for (int i = 0; i < m_gridX; ++i)
+        {
+            // Triangle 1
+            positions.push_back(Vector3(i, j, 0));
+            positions.push_back(Vector3(i + 1, j, 0));
+            positions.push_back(Vector3(i, j + 1, 0));
 
-    // (todo) 01.1: Fill in vertex data
+            // Triangle 2
+            positions.push_back(Vector3(i + 1, j, 0));
+            positions.push_back(Vector3(i, j + 1, 0));
+            positions.push_back(Vector3(i + 1, j + 1, 0));
+        }
+    }
 
+    // Allocate position data in the VBO
+    m_vbo.Bind();
+    m_vbo.AllocateData<Vector3>(positions);
 
-    // (todo) 01.1: Initialize VAO, and VBO
-
+    // Set the pointer to the position data in the VAO
+    m_vao.Bind();
+    VertexAttribute positionAttribute(Data::Type::Float, 3);
+    m_vao.SetAttribute(0, positionAttribute, 0);
 
     // (todo) 01.5: Initialize EBO
 
 
-    // (todo) 01.1: Unbind VAO, and VBO
+    // Unbind VAO, and VBO
+    VertexBufferObject::Unbind();
+    VertexArrayObject::Unbind();
 
 
     // (todo) 01.5: Unbind EBO
@@ -78,8 +100,14 @@ void TerrainApplication::Render()
     // Set shader to be used
     glUseProgram(m_shaderProgram);
 
-    // (todo) 01.1: Draw the grid
+    // Bind the grid VAO
+    m_vao.Bind();
 
+    // Draw the grid (m_gridX * m_gridY quads, 6 vertices per quad)
+    glDrawArrays(GL_TRIANGLES, 0, m_gridX * m_gridY * 6);
+
+    // No need to unbind every time
+    //VertexArrayObject::Unbind();
 }
 
 void TerrainApplication::Cleanup()
