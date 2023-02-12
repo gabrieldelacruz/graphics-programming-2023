@@ -45,20 +45,29 @@ void TerrainApplication::Initialize()
     // Create container for the vertex position
     std::vector<Vector3> positions;
 
+    // Grid scale to convert the entire grid to size 1x1
+    Vector2 scale(1.0f / m_gridX, 1.0f / m_gridY);
+
     // Iterate over each quad
     for (int j = 0; j < m_gridY; ++j)
     {
         for (int i = 0; i < m_gridX; ++i)
         {
+            // 4 corners
+            float left = i * scale.x - 0.5f;
+            float right = (i + 1) * scale.x - 0.5f;
+            float bottom = j * scale.y - 0.5f;
+            float top = (j + 1) * scale.y - 0.5f;
+
             // Triangle 1
-            positions.push_back(Vector3(i, j, 0));
-            positions.push_back(Vector3(i + 1, j, 0));
-            positions.push_back(Vector3(i, j + 1, 0));
+            positions.push_back(Vector3(left, bottom, 0));
+            positions.push_back(Vector3(right, bottom, 0));
+            positions.push_back(Vector3(left, top, 0));
 
             // Triangle 2
-            positions.push_back(Vector3(i + 1, j, 0));
-            positions.push_back(Vector3(i, j + 1, 0));
-            positions.push_back(Vector3(i + 1, j + 1, 0));
+            positions.push_back(Vector3(right, bottom, 0));
+            positions.push_back(Vector3(left, top, 0));
+            positions.push_back(Vector3(right, top, 0));
         }
     }
 
@@ -81,6 +90,9 @@ void TerrainApplication::Initialize()
 
     // (todo) 01.5: Unbind EBO
 
+
+    // Enable wireframe mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void TerrainApplication::Update()
