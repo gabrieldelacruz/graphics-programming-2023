@@ -1,7 +1,11 @@
 #include "TerrainApplication.h"
 
-// (todo) 01.1: Include the libraries you need
+#include <ituGL/geometry/VertexAttribute.h>
 
+#define STB_PERLIN_IMPLEMENTATION
+#include <stb_perlin.h>
+
+#include <vector>
 #include <cmath>
 #include <iostream>
 
@@ -26,12 +30,22 @@ struct Vector3
     }
 };
 
-// (todo) 01.8: Declare an struct with the vertex format
+// Helper struct with the vertex format
+struct Vertex
+{
+    Vector3 position;
+    Vector2 texCoord;
+    Vector3 color;
+    Vector3 normal;
+};
 
+
+// Forward declare helper function
+Vector3 GetColorFromHeight(float height);
 
 
 TerrainApplication::TerrainApplication()
-    : Application(1024, 1024, "Terrain demo"), m_gridX(16), m_gridY(16), m_shaderProgram(0)
+    : Application(1024, 1024, "Terrain demo"), m_gridX(256), m_gridY(256), m_shaderProgram(0)
 {
 }
 
@@ -42,23 +56,126 @@ void TerrainApplication::Initialize()
     // Build shaders and store in m_shaderProgram
     BuildShaders();
 
-    // (todo) 01.1: Create containers for the vertex position
+    // Create containers for the vertex data
+    std::vector<Vertex> vertices;
 
+    // Create container for the element data
+    std::vector<unsigned int> indices;
 
-    // (todo) 01.1: Fill in vertex data
+    // Grid scale to convert the entire grid to size 1x1
+    Vector2 scale(1.0f / m_gridX, 1.0f / m_gridY);
 
+    // Number of columns and rows
+    unsigned int columnCount = m_gridX + 1;
+    unsigned int rowCount = m_gridY + 1;
 
-    // (todo) 01.1: Initialize VAO, and VBO
+    // Iterate over each VERTEX
+    for (int j = 0; j < rowCount; ++j)
+    {
+        for (int i = 0; i < columnCount; ++i)
+        {
+            // Vertex data for this vertex only
+            Vertex& vertex = vertices.emplace_back();
+            float x = i * scale.x - 0.5f;
+            float y = j * scale.y - 0.5f;
+            float z = stb_perlin_fbm_noise3(x * 2, y * 2, 0.0f, 1.9f, 0.5f, 8) * 0.5f;
+            vertex.position = Vector3(x, y, z);
+            vertex.texCoord = Vector2(i, j);
+            vertex.color = GetColorFromHeight(z);
+            vertex.normal = Vector3(0.0f, 0.0f, 1.0f); // Actual value computed after all vertices are created
 
+            // Index data for quad formed by previous vertices and current
+            if (i > 0 && j > 0)
+            {
+                unsigned int top_right = j * columnCount + i; // Current vertex
+                unsigned int top_left = top_right - 1;
+                unsigned int bottom_right = top_right - columnCount;
+                unsigned int bottom_left = bottom_right - 1;
 
-    // (todo) 01.5: Initialize EBO
+                //Triangle 1
+                indices.push_back(bottom_left);
+                indices.push_back(bottom_right);
+                indices.push_back(top_left);
 
+                //Triangle 2
+                indices.push_back(bottom_right);
+                indices.push_back(top_left);
+                indices.push_back(top_right);
+            }
+        }
+    }
 
-    // (todo) 01.1: Unbind VAO, and VBO
+    // Compute normals when we have the positions of all the vertices
+    // Iterate AGAIN over each vertex
+    for (int j = 0; j < rowCount; ++j)
+    {
+        for (int i = 0; i < columnCount; ++i)
+        {
+            // Get the vertex at (i, j)
+            int index = j * columnCount + i;
+            Vertex& vertex = vertices[index];
 
+            // Compute the delta in X
+            int prevX = i > 0 ? index - 1 : index;
+            int nextX = i < m_gridX ? index + 1 : index;
+            float deltaHeightX = vertices[nextX].position.z - vertices[prevX].position.z;
+            float deltaX = vertices[nextX].position.x - vertices[prevX].position.x;
+            float x = deltaHeightX / deltaX;
 
-    // (todo) 01.5: Unbind EBO
+            // Compute the delta in Y
+            int prevY = j > 0 ? index - columnCount : index;
+            int nextY = j < m_gridY ? index + columnCount : index;
+            float deltaHeightY = vertices[nextY].position.z - vertices[prevY].position.z;
+            float deltaY = vertices[nextY].position.y - vertices[prevY].position.y;
+            float y = deltaHeightY / deltaY;
 
+            // Compute the normal
+            vertex.normal = Vector3(x, y, 1.0f).Normalize();
+        }
+    }
+
+    // Declare attributes
+    VertexAttribute positionAttribute(Data::Type::Float, 3);
+    VertexAttribute texCoordAttribute(Data::Type::Float, 2);
+    VertexAttribute colorAttribute(Data::Type::Float, 3);
+    VertexAttribute normalAttribute(Data::Type::Float, 3);
+
+    // Compute offsets inside the VERTEX STRUCT
+    size_t positionOffset = 0u;
+    size_t texCoordOffset = positionOffset + positionAttribute.GetSize();
+    size_t colorOffset = texCoordOffset + texCoordAttribute.GetSize();
+    size_t normalOffset = colorOffset + colorAttribute.GetSize();
+
+    // Allocate uninitialized data for the total size in the VBO
+    m_vbo.Bind();
+    m_vbo.AllocateData(std::span(vertices));
+
+    // The stride is not automatic now. Each attribute element is "sizeof(Vertex)" bytes apart from next
+    GLsizei stride = sizeof(Vertex);
+
+    // Set the pointer to the data in the VAO (notice that this offsets are for a single element)
+    m_vao.Bind();
+    m_vao.SetAttribute(0, positionAttribute, positionOffset, stride);
+    m_vao.SetAttribute(1, texCoordAttribute, texCoordOffset, stride);
+    m_vao.SetAttribute(2, colorAttribute, colorOffset, stride);
+    m_vao.SetAttribute(3, normalAttribute, normalOffset, stride);
+
+    // With VAO bound, bind EBO to register it (and allocate element buffer at the same time)
+    m_ebo.Bind();
+    m_ebo.AllocateData(std::span(indices));
+
+    // Unbind VAO, and VBO
+    VertexBufferObject::Unbind();
+    VertexArrayObject::Unbind();
+
+    // Unbind EBO (when VAO is no longer bound)
+    ElementBufferObject::Unbind();
+
+    // Enable wireframe mode
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Enable depth buffer
+    glEnable(GL_DEPTH_TEST);
 }
 
 void TerrainApplication::Update()
@@ -78,13 +195,43 @@ void TerrainApplication::Render()
     // Set shader to be used
     glUseProgram(m_shaderProgram);
 
-    // (todo) 01.1: Draw the grid
+    // Bind the grid VAO
+    m_vao.Bind();
 
+    // Draw the grid (m_gridX * m_gridY quads, 6 vertices per quad)
+    glDrawElements(GL_TRIANGLES, m_gridX * m_gridY * 6, GL_UNSIGNED_INT, nullptr);
+
+    // No need to unbind every time
+    //VertexArrayObject::Unbind();
 }
 
 void TerrainApplication::Cleanup()
 {
     Application::Cleanup();
+}
+
+Vector3 GetColorFromHeight(float height)
+{
+    if (height > 0.3f)
+    {
+        return Vector3(1.0f, 1.0f, 1.0f); // Snow
+    }
+    else if (height > 0.1f)
+    {
+        return Vector3(0.3, 0.3f, 0.35f); // Rock
+    }
+    else if (height > -0.05f)
+    {
+        return Vector3(0.1, 0.4f, 0.15f); // Grass
+    }
+    else if (height > -0.1f)
+    {
+        return Vector3(0.6, 0.5f, 0.4f); // Sand
+    }
+    else
+    {
+        return Vector3(0.1f, 0.1f, 0.3f); // Water
+    }
 }
 
 void TerrainApplication::BuildShaders()

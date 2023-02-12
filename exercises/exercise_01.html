@@ -134,7 +134,7 @@ ITU Graphics Programming
 	<li>Set the vertex attribute pointer in the VAO, with index 2, using the same offset.</li>
 </ul></p>
 <p>You can visualize if the new attribute is working properly pressing the key "2" during the execution.</p>
-<p>Now ee will tint each vertex with different colors, depending on the height (position.z). With a simple if/else sequence comparing the height to a constant value, divide the terrain in categories (water, sand, grass, rock, snow...).</p>
+<p>Now we will tint each vertex with different colors, depending on the height (position.z). With a simple if/else sequence comparing the height to a constant value, divide the terrain in categories (water, sand, grass, rock, snow...).</p>
 <p>Disable the wireframe mode once again to see the results.</p>
 <p>Do you notice some strange glitches? This is because the depth test is disabled by default, so the triangle order determines what gets drawn. It was like that before, but it was not noticeable.</p>
 <p>You can enable depth testing with this instruction: <i>glEnable(GL_DEPTH_TEST);</i>. If you are interested, it is possible to see the contents of the depth buffer using RenderDoc.</p>
@@ -161,7 +161,7 @@ ITU Graphics Programming
 	<li>Repeat the 2 nested loops, and for each vertex access the vertices to the left, right, up and down.</li>
 	<li>If a vertex is sitting on an edge, use it instead of the not existing neighbor. For instance, if it is at the left, use the vertex itself instead of the left vertex.</li>
 	<li>Obtain the delta in X for that vertex: (right.z - left.z) / (right.x - left.x).</li>
-	<li>Obtain the delta in Y for that vertex: (up.z - down.z) / (up.x - down.x).</li>
+	<li>Obtain the delta in Y for that vertex: (up.z - down.z) / (up.y - down.y).</li>
 	<li>The normal can be computed creating the Vector3 (deltaX, deltaY, 1) and then normalizing it (divide by its length).</li>
 </ul></p>
 <p>You can visualize the normal data pressing the key "3".</p>
