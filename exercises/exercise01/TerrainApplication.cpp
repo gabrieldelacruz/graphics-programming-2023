@@ -36,6 +36,7 @@ struct Vertex
     Vector3 position;
     Vector2 texCoord;
     Vector3 color;
+    Vector3 normal;
 };
 
 
@@ -44,7 +45,7 @@ Vector3 GetColorFromHeight(float height);
 
 
 TerrainApplication::TerrainApplication()
-    : Application(1024, 1024, "Terrain demo"), m_gridX(16), m_gridY(16), m_shaderProgram(0)
+    : Application(1024, 1024, "Terrain demo"), m_gridX(256), m_gridY(256), m_shaderProgram(0)
 {
 }
 
@@ -57,8 +58,6 @@ void TerrainApplication::Initialize()
 
     // Create containers for the vertex data
     std::vector<Vertex> vertices;
-    std::vector<Vector2> texCoords;
-    std::vector<Vector3> colors;
 
     // Create container for the element data
     std::vector<unsigned int> indices;
@@ -83,6 +82,7 @@ void TerrainApplication::Initialize()
             vertex.position = Vector3(x, y, z);
             vertex.texCoord = Vector2(i, j);
             vertex.color = GetColorFromHeight(z);
+            vertex.normal = Vector3(0.0f, 0.0f, 1.0f); // Actual value computed after all vertices are created
 
             // Index data for quad formed by previous vertices and current
             if (i > 0 && j > 0)
@@ -105,15 +105,46 @@ void TerrainApplication::Initialize()
         }
     }
 
+    // Compute normals when we have the positions of all the vertices
+    // Iterate AGAIN over each vertex
+    for (int j = 0; j < rowCount; ++j)
+    {
+        for (int i = 0; i < columnCount; ++i)
+        {
+            // Get the vertex at (i, j)
+            int index = j * columnCount + i;
+            Vertex& vertex = vertices[index];
+
+            // Compute the delta in X
+            int prevX = i > 0 ? index - 1 : index;
+            int nextX = i < m_gridX ? index + 1 : index;
+            float deltaHeightX = vertices[nextX].position.z - vertices[prevX].position.z;
+            float deltaX = vertices[nextX].position.x - vertices[prevX].position.x;
+            float x = deltaHeightX / deltaX;
+
+            // Compute the delta in Y
+            int prevY = j > 0 ? index - columnCount : index;
+            int nextY = j < m_gridY ? index + columnCount : index;
+            float deltaHeightY = vertices[nextY].position.z - vertices[prevY].position.z;
+            float deltaY = vertices[nextY].position.y - vertices[prevY].position.y;
+            float y = deltaHeightY / deltaY;
+
+            // Compute the normal
+            vertex.normal = Vector3(x, y, 1.0f).Normalize();
+        }
+    }
+
     // Declare attributes
     VertexAttribute positionAttribute(Data::Type::Float, 3);
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
     VertexAttribute colorAttribute(Data::Type::Float, 3);
+    VertexAttribute normalAttribute(Data::Type::Float, 3);
 
     // Compute offsets inside the VERTEX STRUCT
     size_t positionOffset = 0u;
     size_t texCoordOffset = positionOffset + positionAttribute.GetSize();
     size_t colorOffset = texCoordOffset + texCoordAttribute.GetSize();
+    size_t normalOffset = colorOffset + colorAttribute.GetSize();
 
     // Allocate uninitialized data for the total size in the VBO
     m_vbo.Bind();
@@ -127,6 +158,7 @@ void TerrainApplication::Initialize()
     m_vao.SetAttribute(0, positionAttribute, positionOffset, stride);
     m_vao.SetAttribute(1, texCoordAttribute, texCoordOffset, stride);
     m_vao.SetAttribute(2, colorAttribute, colorOffset, stride);
+    m_vao.SetAttribute(3, normalAttribute, normalOffset, stride);
 
     // With VAO bound, bind EBO to register it (and allocate element buffer at the same time)
     m_ebo.Bind();
