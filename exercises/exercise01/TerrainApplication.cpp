@@ -46,35 +46,43 @@ void TerrainApplication::Initialize()
     std::vector<Vector3> positions;
     std::vector<Vector2> texCoords;
 
+    // Create container for the element data
+    std::vector<unsigned int> indices;
+
     // Grid scale to convert the entire grid to size 1x1
     Vector2 scale(1.0f / m_gridX, 1.0f / m_gridY);
 
-    // Iterate over each quad
-    for (int j = 0; j < m_gridY; ++j)
+    // Number of columns and rows
+    unsigned int columnCount = m_gridX + 1;
+    unsigned int rowCount = m_gridY + 1;
+
+    // Iterate over each VERTEX
+    for (int j = 0; j < rowCount; ++j)
     {
-        for (int i = 0; i < m_gridX; ++i)
+        for (int i = 0; i < columnCount; ++i)
         {
-            // 4 corners
-            float left = i * scale.x - 0.5f;
-            float right = (i + 1) * scale.x - 0.5f;
-            float bottom = j * scale.y - 0.5f;
-            float top = (j + 1) * scale.y - 0.5f;
+            // Vertex data for this vertex only
+            positions.push_back(Vector3(i * scale.x - 0.5f, j * scale.y - 0.5f, 0));
+            texCoords.push_back(Vector2(i, j));
 
-            // Triangle 1
-            positions.push_back(Vector3(left, bottom, 0));
-            positions.push_back(Vector3(right, bottom, 0));
-            positions.push_back(Vector3(left, top, 0));
-            texCoords.push_back(Vector2(0.0f, 0.0f));
-            texCoords.push_back(Vector2(1.0f, 0.0f));
-            texCoords.push_back(Vector2(0.0f, 1.0f));
+            // Index data for quad formed by previous vertices and current
+            if (i > 0 && j > 0)
+            {
+                unsigned int top_right = j * columnCount + i; // Current vertex
+                unsigned int top_left = top_right - 1;
+                unsigned int bottom_right = top_right - columnCount;
+                unsigned int bottom_left = bottom_right - 1;
 
-            // Triangle 2
-            positions.push_back(Vector3(right, bottom, 0));
-            positions.push_back(Vector3(left, top, 0));
-            positions.push_back(Vector3(right, top, 0));
-            texCoords.push_back(Vector2(1.0f, 0.0f));
-            texCoords.push_back(Vector2(0.0f, 1.0f));
-            texCoords.push_back(Vector2(1.0f, 1.0f));
+                //Triangle 1
+                indices.push_back(bottom_left);
+                indices.push_back(bottom_right);
+                indices.push_back(top_left);
+
+                //Triangle 2
+                indices.push_back(bottom_right);
+                indices.push_back(top_left);
+                indices.push_back(top_right);
+            }
         }
     }
 
@@ -101,16 +109,16 @@ void TerrainApplication::Initialize()
     m_vao.SetAttribute(0, positionAttribute, positionsOffset);
     m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
 
-    // (todo) 01.5: Initialize EBO
-
+    // With VAO bound, bind EBO to register it (and allocate element buffer at the same time)
+    m_ebo.Bind();
+    m_ebo.AllocateData(std::span(indices));
 
     // Unbind VAO, and VBO
     VertexBufferObject::Unbind();
     VertexArrayObject::Unbind();
 
-
-    // (todo) 01.5: Unbind EBO
-
+    // Unbind EBO (when VAO is no longer bound)
+    ElementBufferObject::Unbind();
 
     // Enable wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -137,7 +145,7 @@ void TerrainApplication::Render()
     m_vao.Bind();
 
     // Draw the grid (m_gridX * m_gridY quads, 6 vertices per quad)
-    glDrawArrays(GL_TRIANGLES, 0, m_gridX * m_gridY * 6);
+    glDrawElements(GL_TRIANGLES, m_gridX * m_gridY * 6, GL_UNSIGNED_INT, nullptr);
 
     // No need to unbind every time
     //VertexArrayObject::Unbind();
