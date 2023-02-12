@@ -42,8 +42,9 @@ void TerrainApplication::Initialize()
     // Build shaders and store in m_shaderProgram
     BuildShaders();
 
-    // Create container for the vertex position
+    // Create containers for the vertex data
     std::vector<Vector3> positions;
+    std::vector<Vector2> texCoords;
 
     // Grid scale to convert the entire grid to size 1x1
     Vector2 scale(1.0f / m_gridX, 1.0f / m_gridY);
@@ -63,22 +64,42 @@ void TerrainApplication::Initialize()
             positions.push_back(Vector3(left, bottom, 0));
             positions.push_back(Vector3(right, bottom, 0));
             positions.push_back(Vector3(left, top, 0));
+            texCoords.push_back(Vector2(0.0f, 0.0f));
+            texCoords.push_back(Vector2(1.0f, 0.0f));
+            texCoords.push_back(Vector2(0.0f, 1.0f));
 
             // Triangle 2
             positions.push_back(Vector3(right, bottom, 0));
             positions.push_back(Vector3(left, top, 0));
             positions.push_back(Vector3(right, top, 0));
+            texCoords.push_back(Vector2(1.0f, 0.0f));
+            texCoords.push_back(Vector2(0.0f, 1.0f));
+            texCoords.push_back(Vector2(1.0f, 1.0f));
         }
     }
 
-    // Allocate position data in the VBO
-    m_vbo.Bind();
-    m_vbo.AllocateData<Vector3>(positions);
-
-    // Set the pointer to the position data in the VAO
-    m_vao.Bind();
+    // Declare attributes
     VertexAttribute positionAttribute(Data::Type::Float, 3);
-    m_vao.SetAttribute(0, positionAttribute, 0);
+    VertexAttribute texCoordAttribute(Data::Type::Float, 2);
+
+    // Compute offsets inside the buffer
+    unsigned int vertexCount = positions.size(); // all attributes have the same vertex count
+    size_t positionsOffset = 0u;
+    size_t texCoordsOffset = positionsOffset + vertexCount * positionAttribute.GetSize();
+    size_t totalSize = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
+
+    // Allocate uninitialized data for the total size in the VBO
+    m_vbo.Bind();
+    m_vbo.AllocateData(totalSize);
+
+    // Initialize data in the VBO with all the attributes
+    m_vbo.UpdateData(std::span(positions), positionsOffset);
+    m_vbo.UpdateData(std::span(texCoords), texCoordsOffset);
+
+    // Set the pointer to the position data in the VAO (notice that we use the same offset as in UpdateData)
+    m_vao.Bind();
+    m_vao.SetAttribute(0, positionAttribute, positionsOffset);
+    m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
 
     // (todo) 01.5: Initialize EBO
 
@@ -92,7 +113,7 @@ void TerrainApplication::Initialize()
 
 
     // Enable wireframe mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void TerrainApplication::Update()
