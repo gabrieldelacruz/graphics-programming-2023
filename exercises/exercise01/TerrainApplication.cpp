@@ -30,7 +30,13 @@ struct Vector3
     }
 };
 
-// (todo) 01.8: Declare an struct with the vertex format
+// Helper struct with the vertex format
+struct Vertex
+{
+    Vector3 position;
+    Vector2 texCoord;
+    Vector3 color;
+};
 
 
 // Forward declare helper function
@@ -50,7 +56,7 @@ void TerrainApplication::Initialize()
     BuildShaders();
 
     // Create containers for the vertex data
-    std::vector<Vector3> positions;
+    std::vector<Vertex> vertices;
     std::vector<Vector2> texCoords;
     std::vector<Vector3> colors;
 
@@ -70,12 +76,13 @@ void TerrainApplication::Initialize()
         for (int i = 0; i < columnCount; ++i)
         {
             // Vertex data for this vertex only
+            Vertex& vertex = vertices.emplace_back();
             float x = i * scale.x - 0.5f;
             float y = j * scale.y - 0.5f;
             float z = stb_perlin_fbm_noise3(x * 2, y * 2, 0.0f, 1.9f, 0.5f, 8) * 0.5f;
-            positions.push_back(Vector3(x, y, z));
-            texCoords.push_back(Vector2(i, j));
-            colors.push_back(GetColorFromHeight(z));
+            vertex.position = Vector3(x, y, z);
+            vertex.texCoord = Vector2(i, j);
+            vertex.color = GetColorFromHeight(z);
 
             // Index data for quad formed by previous vertices and current
             if (i > 0 && j > 0)
@@ -103,27 +110,23 @@ void TerrainApplication::Initialize()
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
     VertexAttribute colorAttribute(Data::Type::Float, 3);
 
-    // Compute offsets inside the buffer
-    unsigned int vertexCount = positions.size(); // all attributes have the same vertex count
-    size_t positionsOffset = 0u;
-    size_t texCoordsOffset = positionsOffset + vertexCount * positionAttribute.GetSize();
-    size_t colorsOffset = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
-    size_t totalSize = colorsOffset + vertexCount * colorAttribute.GetSize();
+    // Compute offsets inside the VERTEX STRUCT
+    size_t positionOffset = 0u;
+    size_t texCoordOffset = positionOffset + positionAttribute.GetSize();
+    size_t colorOffset = texCoordOffset + texCoordAttribute.GetSize();
 
     // Allocate uninitialized data for the total size in the VBO
     m_vbo.Bind();
-    m_vbo.AllocateData(totalSize);
+    m_vbo.AllocateData(std::span(vertices));
 
-    // Initialize data in the VBO with all the attributes
-    m_vbo.UpdateData(std::span(positions), positionsOffset);
-    m_vbo.UpdateData(std::span(texCoords), texCoordsOffset);
-    m_vbo.UpdateData(std::span(colors), colorsOffset);
+    // The stride is not automatic now. Each attribute element is "sizeof(Vertex)" bytes apart from next
+    GLsizei stride = sizeof(Vertex);
 
-    // Set the pointer to the position data in the VAO (notice that we use the same offset as in UpdateData)
+    // Set the pointer to the data in the VAO (notice that this offsets are for a single element)
     m_vao.Bind();
-    m_vao.SetAttribute(0, positionAttribute, positionsOffset);
-    m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
-    m_vao.SetAttribute(2, colorAttribute, colorsOffset);
+    m_vao.SetAttribute(0, positionAttribute, positionOffset, stride);
+    m_vao.SetAttribute(1, texCoordAttribute, texCoordOffset, stride);
+    m_vao.SetAttribute(2, colorAttribute, colorOffset, stride);
 
     // With VAO bound, bind EBO to register it (and allocate element buffer at the same time)
     m_ebo.Bind();
