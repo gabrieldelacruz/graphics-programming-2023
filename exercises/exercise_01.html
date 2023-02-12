@@ -134,7 +134,7 @@ ITU Graphics Programming
 	<li>Set the vertex attribute pointer in the VAO, with index 2, using the same offset.</li>
 </ul></p>
 <p>You can visualize if the new attribute is working properly pressing the key "2" during the execution.</p>
-<p>Now ee will tint each vertex with different colors, depending on the height (position.z). With a simple if/else sequence comparing the height to a constant value, divide the terrain in categories (water, sand, grass, rock, snow...).</p>
+<p>Now we will tint each vertex with different colors, depending on the height (position.z). With a simple if/else sequence comparing the height to a constant value, divide the terrain in categories (water, sand, grass, rock, snow...).</p>
 <p>Disable the wireframe mode once again to see the results.</p>
 <p>Do you notice some strange glitches? This is because the depth test is disabled by default, so the triangle order determines what gets drawn. It was like that before, but it was not noticeable.</p>
 <p>You can enable depth testing with this instruction: <i>glEnable(GL_DEPTH_TEST);</i>. If you are interested, it is possible to see the contents of the depth buffer using RenderDoc.</p>

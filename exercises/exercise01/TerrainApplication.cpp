@@ -33,6 +33,9 @@ struct Vector3
 // (todo) 01.8: Declare an struct with the vertex format
 
 
+// Forward declare helper function
+Vector3 GetColorFromHeight(float height);
+
 
 TerrainApplication::TerrainApplication()
     : Application(1024, 1024, "Terrain demo"), m_gridX(16), m_gridY(16), m_shaderProgram(0)
@@ -49,6 +52,7 @@ void TerrainApplication::Initialize()
     // Create containers for the vertex data
     std::vector<Vector3> positions;
     std::vector<Vector2> texCoords;
+    std::vector<Vector3> colors;
 
     // Create container for the element data
     std::vector<unsigned int> indices;
@@ -71,6 +75,7 @@ void TerrainApplication::Initialize()
             float z = stb_perlin_fbm_noise3(x * 2, y * 2, 0.0f, 1.9f, 0.5f, 8) * 0.5f;
             positions.push_back(Vector3(x, y, z));
             texCoords.push_back(Vector2(i, j));
+            colors.push_back(GetColorFromHeight(z));
 
             // Index data for quad formed by previous vertices and current
             if (i > 0 && j > 0)
@@ -96,12 +101,14 @@ void TerrainApplication::Initialize()
     // Declare attributes
     VertexAttribute positionAttribute(Data::Type::Float, 3);
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
+    VertexAttribute colorAttribute(Data::Type::Float, 3);
 
     // Compute offsets inside the buffer
     unsigned int vertexCount = positions.size(); // all attributes have the same vertex count
     size_t positionsOffset = 0u;
     size_t texCoordsOffset = positionsOffset + vertexCount * positionAttribute.GetSize();
-    size_t totalSize = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
+    size_t colorsOffset = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
+    size_t totalSize = colorsOffset + vertexCount * colorAttribute.GetSize();
 
     // Allocate uninitialized data for the total size in the VBO
     m_vbo.Bind();
@@ -110,11 +117,13 @@ void TerrainApplication::Initialize()
     // Initialize data in the VBO with all the attributes
     m_vbo.UpdateData(std::span(positions), positionsOffset);
     m_vbo.UpdateData(std::span(texCoords), texCoordsOffset);
+    m_vbo.UpdateData(std::span(colors), colorsOffset);
 
     // Set the pointer to the position data in the VAO (notice that we use the same offset as in UpdateData)
     m_vao.Bind();
     m_vao.SetAttribute(0, positionAttribute, positionsOffset);
     m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
+    m_vao.SetAttribute(2, colorAttribute, colorsOffset);
 
     // With VAO bound, bind EBO to register it (and allocate element buffer at the same time)
     m_ebo.Bind();
@@ -128,7 +137,10 @@ void TerrainApplication::Initialize()
     ElementBufferObject::Unbind();
 
     // Enable wireframe mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Enable depth buffer
+    glEnable(GL_DEPTH_TEST);
 }
 
 void TerrainApplication::Update()
@@ -161,6 +173,30 @@ void TerrainApplication::Render()
 void TerrainApplication::Cleanup()
 {
     Application::Cleanup();
+}
+
+Vector3 GetColorFromHeight(float height)
+{
+    if (height > 0.3f)
+    {
+        return Vector3(1.0f, 1.0f, 1.0f); // Snow
+    }
+    else if (height > 0.1f)
+    {
+        return Vector3(0.3, 0.3f, 0.35f); // Rock
+    }
+    else if (height > -0.05f)
+    {
+        return Vector3(0.1, 0.4f, 0.15f); // Grass
+    }
+    else if (height > -0.1f)
+    {
+        return Vector3(0.6, 0.5f, 0.4f); // Sand
+    }
+    else
+    {
+        return Vector3(0.1f, 0.1f, 0.3f); // Water
+    }
 }
 
 void TerrainApplication::BuildShaders()
