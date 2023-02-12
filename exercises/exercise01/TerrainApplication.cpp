@@ -1,6 +1,10 @@
 #include "TerrainApplication.h"
 
 #include <ituGL/geometry/VertexAttribute.h>
+
+#define STB_PERLIN_IMPLEMENTATION
+#include <stb_perlin.h>
+
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -62,7 +66,10 @@ void TerrainApplication::Initialize()
         for (int i = 0; i < columnCount; ++i)
         {
             // Vertex data for this vertex only
-            positions.push_back(Vector3(i * scale.x - 0.5f, j * scale.y - 0.5f, 0));
+            float x = i * scale.x - 0.5f;
+            float y = j * scale.y - 0.5f;
+            float z = stb_perlin_fbm_noise3(x * 2, y * 2, 0.0f, 1.9f, 0.5f, 8) * 0.5f;
+            positions.push_back(Vector3(x, y, z));
             texCoords.push_back(Vector2(i, j));
 
             // Index data for quad formed by previous vertices and current
@@ -121,7 +128,7 @@ void TerrainApplication::Initialize()
     ElementBufferObject::Unbind();
 
     // Enable wireframe mode
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void TerrainApplication::Update()
