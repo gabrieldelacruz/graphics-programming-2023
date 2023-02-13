@@ -1,0 +1,384 @@
+#include <ituGL/shader/ShaderProgram.h>
+
+#include <ituGL/shader/Shader.h>
+#include <cassert>
+
+#ifndef NDEBUG
+ShaderProgram::Handle ShaderProgram::s_usedHandle = ShaderProgram::NullHandle;
+#endif
+
+ShaderProgram::ShaderProgram() : Object(NullHandle)
+{
+    Handle& handle = GetHandle();
+    handle = glCreateProgram();
+}
+
+ShaderProgram::~ShaderProgram()
+{
+    if (IsValid())
+    {
+        Handle& handle = GetHandle();
+        glDeleteProgram(handle);
+        handle = NullHandle;
+    }
+}
+
+// Bind should not be called for ShaderProgram
+void ShaderProgram::Bind() const
+{
+    // Assert if it gets called
+    assert(false);
+}
+
+// Build (Attach and link) a shader program with a compute shader
+bool ShaderProgram::Build(const Shader& computeShader)
+{
+    assert(computeShader.IsType(Shader::ComputeShader));
+    AttachShader(computeShader);
+    return Link();
+}
+
+// Build (Attach and link) all shaders provided for the rasterization pipeline
+bool ShaderProgram::Build(const Shader& vertexShader, const Shader& fragmentShader,
+    const Shader* tesselationControlShader, const Shader* tesselationEvaluationShader,
+    const Shader* geometryShader)
+{
+    assert(vertexShader.IsType(Shader::VertexShader));
+    AttachShader(vertexShader);
+
+    assert(fragmentShader.IsType(Shader::FragmentShader));
+    AttachShader(fragmentShader);
+
+    if (tesselationControlShader)
+    {
+        assert(tesselationEvaluationShader);
+        assert(tesselationControlShader->IsType(Shader::TesselationControlShader));
+        AttachShader(*tesselationControlShader);
+    }
+
+    if (tesselationEvaluationShader)
+    {
+        assert(tesselationEvaluationShader->IsType(Shader::TesselationEvaluationShader));
+        AttachShader(*tesselationEvaluationShader);
+    }
+
+    if (geometryShader)
+    {
+        assert(geometryShader->IsType(Shader::GeometryShader));
+        AttachShader(*geometryShader);
+    }
+
+    return Link();
+}
+
+// Attach a shader to be linked
+void ShaderProgram::AttachShader(const Shader& shader)
+{
+    assert(IsValid());
+    assert(!IsLinked());
+    assert(shader.IsValid());
+    assert(shader.IsCompiled());
+
+    Handle shaderProgramHandle = GetHandle();
+    Handle shaderHandle = shader.GetHandle();
+
+    // (todo) 02.1: Attach the shader to the shader program
+
+}
+
+// Link currently attached shaders
+bool ShaderProgram::Link()
+{
+    assert(IsValid());
+
+    Handle handle = GetHandle();
+
+    // (todo) 02.1: Link the shader program
+
+
+    return IsLinked();
+}
+
+// Check if shaders have been linked to create a valid program
+bool ShaderProgram::IsLinked() const
+{
+    assert(IsValid());
+
+    GLint success;
+    glGetProgramiv(GetHandle(), GL_LINK_STATUS, &success);
+    return success;
+}
+
+// Get a string with linking error messages
+// The max length of the string returned is determined by the capacity of the span
+void ShaderProgram::GetLinkingErrors(std::span<char> errors) const
+{
+    assert(IsValid());
+    glGetProgramInfoLog(GetHandle(), static_cast<GLsizei>(errors.size()), nullptr, errors.data());
+}
+
+// Set the shader program as the active one to be used for rendering
+void ShaderProgram::Use() const
+{
+    assert(IsValid());
+    assert(IsLinked());
+    Handle handle = GetHandle();
+    glUseProgram(handle);
+#ifndef NDEBUG
+    s_usedHandle = handle;
+#endif
+}
+
+// Find an attribute location by name
+ShaderProgram::Location ShaderProgram::GetAttributeLocation(const char* name) const
+{
+    assert(IsValid());
+    assert(IsLinked());
+    return glGetAttribLocation(GetHandle(), name);
+}
+
+// Find a uniform location by name
+ShaderProgram::Location ShaderProgram::GetUniformLocation(const char* name) const
+{
+    assert(IsValid());
+    assert(IsLinked());
+
+    Handle handle = GetHandle();
+
+    // (todo) 02.1: Return the location in this shader program of the uniform with that name
+    return -1;
+}
+
+
+// All the different combinations of Get/SetUniform
+template<>
+void ShaderProgram::GetUniform<GLint>(Location location, std::span<GLint> value) const
+{
+    assert(IsValid());
+    assert(IsLinked());
+    glGetnUniformiv(GetHandle(), location, static_cast<GLsizei>(value.size_bytes()), value.data());
+}
+
+template<>
+void ShaderProgram::GetUniform<GLuint>(Location location, std::span<GLuint> value) const
+{
+    assert(IsValid());
+    assert(IsLinked());
+    glGetnUniformuiv(GetHandle(), location, static_cast<GLsizei>(value.size_bytes()), value.data());
+}
+
+template<>
+void ShaderProgram::GetUniform<GLfloat>(Location location, std::span<GLfloat> value) const
+{
+    assert(IsValid());
+    assert(IsLinked());
+    glGetnUniformfv(GetHandle(), location, static_cast<GLsizei>(value.size_bytes()), value.data());
+}
+
+template<>
+void ShaderProgram::GetUniform<GLdouble>(Location location, std::span<GLdouble> value) const
+{
+    assert(IsValid());
+    assert(IsLinked());
+    glGetnUniformdv(GetHandle(), location, static_cast<GLsizei>(value.size_bytes()), value.data());
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLint, 1>(Location location, const GLint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform1iv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLint, 2>(Location location, const GLint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform2iv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLint, 3>(Location location, const GLint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform3iv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLint, 4>(Location location, const GLint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform4iv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLuint, 1>(Location location, const GLuint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform1uiv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLuint, 2>(Location location, const GLuint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform2uiv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLuint, 3>(Location location, const GLuint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform3uiv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLuint, 4>(Location location, const GLuint* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform4uiv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 1>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform1fv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 2>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform2fv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 3>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform3fv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 4>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform4fv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLdouble, 1>(Location location, const GLdouble* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform1dv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLdouble, 2>(Location location, const GLdouble* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform2dv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLdouble, 3>(Location location, const GLdouble* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform3dv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLdouble, 4>(Location location, const GLdouble* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniform4dv(location, count, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 2, 2>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix2fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 2, 3>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix2x3fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 2, 4>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix2x4fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 3, 2>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix3x2fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 3, 3>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix3fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 3, 4>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix3x4fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 4, 2>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix4x2fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 4, 3>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix4x3fv(location, count, false, values);
+}
+
+template<>
+void ShaderProgram::SetUniforms<GLfloat, 4, 4>(Location location, const GLfloat* values, GLsizei count)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    glUniformMatrix4fv(location, count, false, values);
+}

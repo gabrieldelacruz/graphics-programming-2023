@@ -1,8 +1,7 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
-
-struct GLFWwindow;
+#include <glm/vec2.hpp>
 
 class Window
 {
@@ -31,17 +30,47 @@ public:
     void SwapBuffers();
 
 public:
-    enum class KeyState
+    // Pressed state of a button or key
+    enum class PressedState
     {
         Pressed = GLFW_PRESS,
         Released = GLFW_RELEASE,
         Repeated = GLFW_REPEAT,
     };
 
-    KeyState GetKeyState(int keyCode) const;
-    bool IsKeyPressed(int keyCode) const { return GetKeyState(keyCode) == KeyState::Pressed; }
-    bool IsKeyReleased(int keyCode) const { return GetKeyState(keyCode) == KeyState::Released; }
-    bool IsKeyRepeated(int keyCode) const { return GetKeyState(keyCode) == KeyState::Repeated; }
+    // Get the pressed state of a key
+    PressedState GetKeyState(int keyCode) const;
+
+    // Helper functions to query the pressed state of a key
+    bool IsKeyPressed(int keyCode) const { return GetKeyState(keyCode) == PressedState::Pressed; }
+    bool IsKeyReleased(int keyCode) const { return GetKeyState(keyCode) == PressedState::Released; }
+    bool IsKeyRepeated(int keyCode) const { return GetKeyState(keyCode) == PressedState::Repeated; }
+
+    // Main buttons of the mouse
+    enum class MouseButton
+    {
+        Left = GLFW_MOUSE_BUTTON_LEFT,
+        Right = GLFW_MOUSE_BUTTON_RIGHT,
+        Middle = GLFW_MOUSE_BUTTON_MIDDLE,
+    };
+
+    // Get the pressed state of a mouse button
+    PressedState GetMouseButtonState(MouseButton button) const;
+
+    // Helper functions to query the pressed state of a mouse button
+    bool IsMouseButtonPressed(MouseButton button) const { return GetMouseButtonState(button) == PressedState::Pressed; }
+    bool IsMouseButtonReleased(MouseButton button) const { return GetMouseButtonState(button) == PressedState::Released; }
+
+    // Get if the mouse is visible
+    bool IsMouseVisible() const;
+    // Set if the mouse is visible
+    void SetMouseVisible(bool visible) const;
+
+    // Get the mouse position, in pixels or in NDC coordinates
+    glm::vec2 GetMousePosition(bool normalized = false) const;
+    // Set the mouse position, in pixels or in NDC coordinates
+    void SetMousePosition(glm::vec2 mousePosition, bool normalized = false) const;
+
 
 private:
     // Pointer to a GLFW window object. Its lifetime should match the lifetime of this object

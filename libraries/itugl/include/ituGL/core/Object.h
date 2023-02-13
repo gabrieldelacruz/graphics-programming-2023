@@ -31,6 +31,11 @@ protected:
     // Give access to derived classes to modify the handle
     inline Handle& GetHandle() { return m_handle; }
 
+#ifndef NDEBUG
+    // Check if this Object is currently bound
+    virtual bool IsBound() const { return false; }
+#endif
+
 protected:
     // We define a constant to represent null handles. In OpenGL we use 0 to represent this
     static const Handle NullHandle = 0;

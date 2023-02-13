@@ -7,7 +7,7 @@ class Color
 {
 public:
     Color() : Color(0.0f, 0.0f, 0.0f, 1.0f) {}
-    Color(float red, float green, float blue, float alpha);
+    Color(float red, float green, float blue, float alpha = 1.0f);
 
     inline float GetRed() const { return m_red; };
     inline void SetRed(float red) { m_red = red; };

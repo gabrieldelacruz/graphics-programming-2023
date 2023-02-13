@@ -2,6 +2,7 @@
 
 #include <ituGL/core/BufferObject.h>
 #include <ituGL/core/Data.h>
+#include <cassert>
 
 // Element Buffer Object (VBO) is the common term for a BufferObject when it is storing a list of indices to vertices
 class ElementBufferObject : public BufferObjectBase<BufferObject::ElementArrayBuffer>
@@ -21,12 +22,18 @@ public:
     // UpdateData template method for any type of data span. Type must be one of the supported types
     template<typename T>
     void UpdateData(std::span<const T> data, size_t offsetBytes = 0);
+
+#ifndef NDEBUG
+    // Check if a data type is supported to be used as index
+    static bool IsSupportedType(Data::Type type);
+#endif
 };
 
 // Call the base implementation with the buffer size, computed with elementCount and size of T
 template<typename T>
 void ElementBufferObject::AllocateData(size_t elementCount, Usage usage)
 {
+    assert(IsSupportedType(Data::GetType<T>()));
     BufferObject::AllocateData(elementCount * sizeof(T), usage);
 }
 
@@ -34,6 +41,7 @@ void ElementBufferObject::AllocateData(size_t elementCount, Usage usage)
 template<typename T>
 void ElementBufferObject::AllocateData(std::span<const T> data, Usage usage)
 {
+    assert(IsSupportedType(Data::GetType<T>()));
     BufferObject::AllocateData(Data::GetBytes(data), usage);
 }
 
@@ -41,5 +49,6 @@ void ElementBufferObject::AllocateData(std::span<const T> data, Usage usage)
 template<typename T>
 void ElementBufferObject::UpdateData(std::span<const T> data, size_t offsetBytes)
 {
+    assert(IsSupportedType(Data::GetType<T>()));
     BufferObject::UpdateData(Data::GetBytes(data), offsetBytes);
 }

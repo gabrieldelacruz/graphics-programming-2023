@@ -45,7 +45,52 @@ void Window::SwapBuffers()
     glfwSwapBuffers(m_window);
 }
 
-Window::KeyState Window::GetKeyState(int keyCode) const
+Window::PressedState Window::GetKeyState(int keyCode) const
 {
-    return static_cast<KeyState>(glfwGetKey(m_window, keyCode));
+    return static_cast<PressedState>(glfwGetKey(m_window, keyCode));
+}
+
+Window::PressedState Window::GetMouseButtonState(MouseButton button) const
+{
+    return static_cast<PressedState>(glfwGetMouseButton(m_window, static_cast<int>(button)));
+}
+
+bool Window::IsMouseVisible() const
+{
+    return glfwGetInputMode(m_window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
+}
+
+void Window::SetMouseVisible(bool visible) const
+{
+    glfwSetInputMode(m_window, GLFW_CURSOR, visible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
+glm::vec2 Window::GetMousePosition(bool normalized) const
+{
+    double x, y;
+    glfwGetCursorPos(m_window, &x, &y);
+
+    glm::vec2 mousePosition(static_cast<float>(x), static_cast<float>(y));
+
+    if (normalized)
+    {
+        int width, height;
+        GetDimensions(width, height);
+        mousePosition.x = mousePosition.x / width * 2.0f - 1.0f;
+        mousePosition.y = mousePosition.y / -height * 2.0f + 1.0f;
+    }
+    return mousePosition;
+}
+
+void Window::SetMousePosition(glm::vec2 mousePosition, bool normalized) const
+{
+    if (normalized)
+    {
+        int width, height;
+        GetDimensions(width, height);
+        mousePosition.x = (mousePosition.x * 0.5f + 0.5f) * width;
+        mousePosition.y = (mousePosition.y * 0.5f - 0.5f) * -height;
+    }
+
+    glfwSetCursorPos(m_window, mousePosition.x, mousePosition.y);
 }

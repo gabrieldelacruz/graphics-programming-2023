@@ -50,6 +50,16 @@ void DeviceGL::PollEvents()
     glfwPollEvents();
 }
 
+// Callback called when the framebuffer changes size
+void DeviceGL::FrameBufferResized(GLFWwindow* window, GLsizei width, GLsizei height)
+{
+    if (m_instance)
+    {
+        // Adjust the viewport when the framebuffer is resized
+        m_instance->SetViewport(0, 0, width, height);
+    }
+}
+
 // Clear the framebuffer with the specified color, depth and stencil
 void DeviceGL::Clear(bool clearColor, const Color& color, bool clearDepth, GLdouble depth, bool clearStencil, GLint stencil)
 {
@@ -72,12 +82,33 @@ void DeviceGL::Clear(bool clearColor, const Color& color, bool clearDepth, GLdou
     glClear(mask);
 }
 
-// Callback called when the framebuffer changes size
-void DeviceGL::FrameBufferResized(GLFWwindow* window, GLsizei width, GLsizei height)
+// Get if a feature is enabled
+bool DeviceGL::IsFeatureEnabled(GLenum feature) const
 {
-    if (m_instance)
+    return glIsEnabled(feature);
+}
+
+// enable / disable a feature
+void DeviceGL::SetFeatureEnabled(GLenum feature, bool enabled)
+{
+    if (enabled)
     {
-        // Adjust the viewport when the framebuffer is resized
-        m_instance->SetViewport(0, 0, width, height);
+        glEnable(feature);
     }
+    else
+    {
+        glDisable(feature);
+    }
+}
+
+// enable / disable wireframe mode
+void DeviceGL::SetWireframeEnabled(bool enabled)
+{
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+// enable / disable v-sync
+void DeviceGL::SetVSyncEnabled(bool enabled)
+{
+    glfwSwapInterval(enabled ? 1 : 0);
 }
