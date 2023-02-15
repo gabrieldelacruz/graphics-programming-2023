@@ -26,7 +26,7 @@ private:
     void LoadAndCompileShader(Shader& shader, const char* path);
 
     // Emit a new particle
-    void EmitParticle(const glm::vec2& position, float size);
+    void EmitParticle(const glm::vec2& position, float size, float duration);
 
     // Helper methods for random values
     static float Random01();
@@ -43,6 +43,9 @@ private:
 
     // Particles shader program
     ShaderProgram m_shaderProgram;
+
+    // Location of the "CurrentTime" uniform
+    ShaderProgram::Location m_currentTimeUniform;
 
     // Mouse position during this frame
     glm::vec2 m_mousePosition;
