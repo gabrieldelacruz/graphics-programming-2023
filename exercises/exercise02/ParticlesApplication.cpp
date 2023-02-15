@@ -26,6 +26,7 @@ const std::array<VertexAttribute, 2> s_vertexAttributes =
 
 ParticlesApplication::ParticlesApplication()
     : Application(1024, 1024, "Particles demo")
+    , m_mousePosition(0)
     , m_particleCount(0)
     , m_particleCapacity(2048)  // You can change the capacity here to have more particles
 {
@@ -40,11 +41,10 @@ void ParticlesApplication::Initialize()
     // Initialize the mouse position with the current position of the mouse
     m_mousePosition = GetMainWindow().GetMousePosition(true);
 
-    // (todo) 02.2: Enable the GL_PROGRAM_POINT_SIZE feature on the device
     GetDevice().EnableFeature(GL_PROGRAM_POINT_SIZE);
 
-    // (todo) 02.3: Enable the GL_BLEND feature on the device
-
+    GetDevice().EnableFeature(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     // We need to enable V-sync, otherwise the framerate would be too high and spawn multiple particles in one click
     GetDevice().SetVSyncEnabled(true);
@@ -62,7 +62,6 @@ void ParticlesApplication::Update()
     // Emit particles while the left button is pressed
     if (window.IsMouseButtonPressed(Window::MouseButton::Left))
     {
-        // (todo) 02.X: Compute new particle attributes here
         float size = RandomRange(10.0f, 30.0f);
 
         EmitParticle(mousePosition, size);
