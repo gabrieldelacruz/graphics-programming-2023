@@ -16,22 +16,25 @@ struct Particle
     float birth;
     float duration;
     Color color;
+    glm::vec2 velocity;
 };
 
 // List of attributes of the particle. Must match the structure above
-const std::array<VertexAttribute, 5> s_vertexAttributes =
+const std::array<VertexAttribute, 6> s_vertexAttributes =
 {
     VertexAttribute(Data::Type::Float, 2), // position
     VertexAttribute(Data::Type::Float, 1), // size
     VertexAttribute(Data::Type::Float, 1), // birth
     VertexAttribute(Data::Type::Float, 1), // duration
     VertexAttribute(Data::Type::Float, 4), // color
+    VertexAttribute(Data::Type::Float, 2), // velocity
 };
 
 
 ParticlesApplication::ParticlesApplication()
     : Application(1024, 1024, "Particles demo")
     , m_currentTimeUniform(0)
+    , m_gravityUniform(0)
     , m_mousePosition(0)
     , m_particleCount(0)
     , m_particleCapacity(2048)  // You can change the capacity here to have more particles
@@ -59,6 +62,9 @@ void ParticlesApplication::Initialize()
 
     // Get "CurrentTime" uniform location in the shader program
     m_currentTimeUniform = m_shaderProgram.GetUniformLocation("CurrentTime");
+
+    // Get "Gravity" uniform location in the shader program
+    m_gravityUniform = m_shaderProgram.GetUniformLocation("Gravity");
 }
 
 void ParticlesApplication::Update()
@@ -76,8 +82,9 @@ void ParticlesApplication::Update()
         float size = RandomRange(10.0f, 30.0f);
         float duration = RandomRange(1.0f, 2.0f);
         Color color = RandomColor();
+        glm::vec2 velocity = 0.5f * (mousePosition - m_mousePosition) / GetDeltaTime();
 
-        EmitParticle(mousePosition, size, duration, color);
+        EmitParticle(mousePosition, size, duration, color, velocity);
     }
 
     // save the mouse position (to compare next frame and obtain velocity)
@@ -95,8 +102,8 @@ void ParticlesApplication::Render()
     // Set CurrentTime uniform
     m_shaderProgram.SetUniform(m_currentTimeUniform, GetCurrentTime());
 
-    // (todo) 02.6: Set Gravity uniform
-
+    // Set Gravity uniform
+    m_shaderProgram.SetUniform(m_gravityUniform, -9.8f);
 
     // Bind the particle system VAO
     m_vao.Bind();
@@ -153,7 +160,7 @@ void ParticlesApplication::InitializeShaders()
     }
 }
 
-void ParticlesApplication::EmitParticle(const glm::vec2& position, float size, float duration, const Color& color)
+void ParticlesApplication::EmitParticle(const glm::vec2& position, float size, float duration, const Color& color, const glm::vec2& velocity)
 {
     // Initialize the particle
     Particle particle;
@@ -162,6 +169,7 @@ void ParticlesApplication::EmitParticle(const glm::vec2& position, float size, f
     particle.birth = GetCurrentTime();
     particle.duration = duration;
     particle.color = color;
+    particle.velocity = velocity;
 
     // Get the index in the circular buffer
     unsigned int particleIndex = m_particleCount % m_particleCapacity;
