@@ -46,7 +46,7 @@ int main()
     // ------------------------------------------------------------------
     const int sides = 16;
     const float pi = 3.1416f;
-    const float length = 0.5f * std::sqrt(2);
+    const float length = 0.5f * std::sqrt(2.0f);
 
     // Using std::array instead of regular arrays makes sure we don't access out of range
     std::array<float, 3 * (sides + 1)> vertices;
@@ -117,7 +117,7 @@ int main()
         glUseProgram(shaderProgram);
         vao.Bind(); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
         // VertexArrayObject::Unbind(); // no need to unbind it every time 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

@@ -70,9 +70,9 @@ void TerrainApplication::Initialize()
     unsigned int rowCount = m_gridY + 1;
 
     // Iterate over each VERTEX
-    for (int j = 0; j < rowCount; ++j)
+    for (unsigned int j = 0; j < rowCount; ++j)
     {
-        for (int i = 0; i < columnCount; ++i)
+        for (unsigned int i = 0; i < columnCount; ++i)
         {
             // Vertex data for this vertex only
             Vertex& vertex = vertices.emplace_back();
@@ -80,7 +80,7 @@ void TerrainApplication::Initialize()
             float y = j * scale.y - 0.5f;
             float z = stb_perlin_fbm_noise3(x * 2, y * 2, 0.0f, 1.9f, 0.5f, 8) * 0.5f;
             vertex.position = Vector3(x, y, z);
-            vertex.texCoord = Vector2(i, j);
+            vertex.texCoord = Vector2(static_cast<float>(i), static_cast<float>(j));
             vertex.color = GetColorFromHeight(z);
             vertex.normal = Vector3(0.0f, 0.0f, 1.0f); // Actual value computed after all vertices are created
 
@@ -107,17 +107,17 @@ void TerrainApplication::Initialize()
 
     // Compute normals when we have the positions of all the vertices
     // Iterate AGAIN over each vertex
-    for (int j = 0; j < rowCount; ++j)
+    for (unsigned int j = 0; j < rowCount; ++j)
     {
-        for (int i = 0; i < columnCount; ++i)
+        for (unsigned int i = 0; i < columnCount; ++i)
         {
             // Get the vertex at (i, j)
             int index = j * columnCount + i;
             Vertex& vertex = vertices[index];
 
             // Compute the delta in X
-            int prevX = i > 0 ? index - 1 : index;
-            int nextX = i < m_gridX ? index + 1 : index;
+            unsigned int prevX = i > 0 ? index - 1 : index;
+            unsigned int nextX = i < m_gridX ? index + 1 : index;
             float deltaHeightX = vertices[nextX].position.z - vertices[prevX].position.z;
             float deltaX = vertices[nextX].position.x - vertices[prevX].position.x;
             float x = deltaHeightX / deltaX;
@@ -155,10 +155,10 @@ void TerrainApplication::Initialize()
 
     // Set the pointer to the data in the VAO (notice that this offsets are for a single element)
     m_vao.Bind();
-    m_vao.SetAttribute(0, positionAttribute, positionOffset, stride);
-    m_vao.SetAttribute(1, texCoordAttribute, texCoordOffset, stride);
-    m_vao.SetAttribute(2, colorAttribute, colorOffset, stride);
-    m_vao.SetAttribute(3, normalAttribute, normalOffset, stride);
+    m_vao.SetAttribute(0, positionAttribute, static_cast<GLint>(positionOffset), stride);
+    m_vao.SetAttribute(1, texCoordAttribute, static_cast<GLint>(texCoordOffset), stride);
+    m_vao.SetAttribute(2, colorAttribute, static_cast<GLint>(colorOffset), stride);
+    m_vao.SetAttribute(3, normalAttribute, static_cast<GLint>(normalOffset), stride);
 
     // With VAO bound, bind EBO to register it (and allocate element buffer at the same time)
     m_ebo.Bind();
@@ -218,15 +218,15 @@ Vector3 GetColorFromHeight(float height)
     }
     else if (height > 0.1f)
     {
-        return Vector3(0.3, 0.3f, 0.35f); // Rock
+        return Vector3(0.3f, 0.3f, 0.35f); // Rock
     }
     else if (height > -0.05f)
     {
-        return Vector3(0.1, 0.4f, 0.15f); // Grass
+        return Vector3(0.1f, 0.4f, 0.15f); // Grass
     }
     else if (height > -0.1f)
     {
-        return Vector3(0.6, 0.5f, 0.4f); // Sand
+        return Vector3(0.6f, 0.5f, 0.4f); // Sand
     }
     else
     {
