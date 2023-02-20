@@ -16,6 +16,16 @@ BufferObject::~BufferObject()
     glDeleteBuffers(1, &handle);
 }
 
+BufferObject::BufferObject(BufferObject&& bufferObject) noexcept : Object(std::move(bufferObject))
+{
+}
+
+BufferObject& BufferObject::operator = (BufferObject&& bufferObject) noexcept
+{
+    Object::operator=(std::move(bufferObject));
+    return *this;
+}
+
 // Bind the buffer handle to the specific target
 void BufferObject::Bind(Target target) const
 {

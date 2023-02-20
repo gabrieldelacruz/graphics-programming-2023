@@ -18,6 +18,11 @@ public:
     Object(const Object&) = delete;
     void operator = (const Object&) = delete;
 
+    // (C++) 8
+    // Move semantics
+    Object(Object&& object) noexcept;
+    Object& operator = (Object&& object) noexcept;
+
     inline Handle GetHandle() const { return m_handle; }
 
     // An object is only valid if its handle is not null

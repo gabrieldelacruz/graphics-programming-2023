@@ -6,3 +6,16 @@ VertexAttribute::VertexAttribute(Data::Type type, int components, bool normalize
     , m_normalized(normalized)
 {
 }
+
+int VertexAttribute::GetLocationSize() const
+{
+    // For matrix attributes, we would need 1 for each row, but we won´t be using matrices for attributes.
+    return 1;
+}
+
+VertexAttribute::Layout::Layout(const VertexAttribute& attribute, GLint offset, GLsizei stride)
+    : m_attribute(attribute)
+    , m_offset(offset)
+    , m_stride(stride)
+{
+}

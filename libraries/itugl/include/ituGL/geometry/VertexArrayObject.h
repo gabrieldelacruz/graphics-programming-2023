@@ -12,6 +12,11 @@ public:
     VertexArrayObject();
     virtual ~VertexArrayObject();
 
+    // (C++) 8
+    // Move semantics
+    VertexArrayObject(VertexArrayObject&& vao) noexcept;
+    VertexArrayObject& operator = (VertexArrayObject&& vao) noexcept;
+
     // Implements the Bind required by Object
     void Bind() const override;
     // Unbinds currently bound VertexArrayObject

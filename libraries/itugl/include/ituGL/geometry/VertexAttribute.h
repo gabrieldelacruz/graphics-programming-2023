@@ -7,6 +7,9 @@
 class VertexAttribute
 {
 public:
+    class Layout;
+
+public:
     VertexAttribute(Data::Type type, int components, bool normalized = false);
 
     inline Data::Type GetType() const { return m_type; }
@@ -16,6 +19,9 @@ public:
     // Gets the size of the attribute
     inline int GetSize() const { return Data::GetTypeSize(m_type) * m_components; }
 
+    // Gets how many location indices the attribute needs (usually 1)
+    int GetLocationSize() const;
+
 private:
     // (C++) 6
     // Data type of the attribute. Usually an integer or floating point type
@@ -24,4 +30,20 @@ private:
     unsigned int m_components : 3;
     // If an integer value is normalized, it is converted to a [0, 1] floating point on the GPU
     bool m_normalized : 1;
+};
+
+// Helper class that contains an attribute, the offset where it starts in a buffer, and the stride
+class VertexAttribute::Layout
+{
+public:
+    Layout(const VertexAttribute& attribute, GLint offset, GLsizei stride);
+
+    inline const VertexAttribute& GetAttribute() const { return m_attribute; }
+    inline GLint GetOffset() const { return m_offset; }
+    inline GLsizei GetStride() const { return m_stride; }
+
+private:
+    VertexAttribute m_attribute;
+    GLint m_offset;
+    GLsizei m_stride;
 };

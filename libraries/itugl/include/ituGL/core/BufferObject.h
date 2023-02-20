@@ -38,6 +38,11 @@ public:
     BufferObject();
     virtual ~BufferObject();
 
+    // (C++) 8
+    // Move semantics
+    BufferObject(BufferObject&& bufferObject) noexcept;
+    BufferObject& operator = (BufferObject&& bufferObject) noexcept;
+
     // (C++) 3
     // Use the same Bind method from the base class
     // It was not inherited implicitly because we defined another method named Bind (below)

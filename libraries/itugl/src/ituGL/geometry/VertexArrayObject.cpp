@@ -23,6 +23,16 @@ VertexArrayObject::~VertexArrayObject()
     glDeleteVertexArrays(1, &handle);
 }
 
+VertexArrayObject::VertexArrayObject(VertexArrayObject&& vao) noexcept : Object(std::move(vao))
+{
+}
+
+VertexArrayObject& VertexArrayObject::operator = (VertexArrayObject&& vao) noexcept
+{
+    Object::operator=(std::move(vao));
+    return *this;
+}
+
 // Bind the vertex array handle to the specific target
 void VertexArrayObject::Bind() const
 {

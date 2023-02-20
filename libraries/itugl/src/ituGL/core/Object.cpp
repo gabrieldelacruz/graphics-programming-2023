@@ -9,3 +9,16 @@ Object::Object(Handle handle) : m_handle(handle)
 Object::~Object()
 {
 }
+
+Object::Object(Object&& object) noexcept : m_handle(object.m_handle)
+{
+    object.m_handle = NullHandle;
+}
+
+Object& Object::operator = (Object&& object) noexcept
+{
+    this->~Object();
+    m_handle = object.m_handle;
+    object.m_handle = NullHandle;
+    return *this;
+}
