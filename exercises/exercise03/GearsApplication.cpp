@@ -136,13 +136,127 @@ void GearsApplication::CreateGearMesh(Mesh& mesh, unsigned int cogCount, float i
     // List of indices (EBO)
     std::vector<unsigned short> indices;
 
-    // Vertices of a triangle
-    vertices.emplace_back(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    vertices.emplace_back(glm::vec3( 0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    vertices.emplace_back(glm::vec3( 0.0f,  0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Mesh will have 2 sides for each cog
+    unsigned int sides = 2 * cogCount;
 
-    // Indices
-    indices.push_back(0); indices.push_back(1); indices.push_back(2);
+    // Base delta angle for each side is 2*PI / sides
+    float deltaAngle = 2 * static_cast<float>(std::numbers::pi) / sides;
+
+    // Useful radius
+    float outerRadius = pitchRadius - addendum * 0.5f;
+    float teethRadius = pitchRadius + addendum * 0.5f;
+
+    // Offsets to ensure the cogs fit
+    float offsetOuterAngle = -deltaAngle * (0.5f - cogRatio / (1 + outerRadius / teethRadius));
+    float offsetTeethAngle = deltaAngle * (0.5f - cogRatio / (1 + teethRadius / outerRadius));
+
+    // Centered at 0. Half depth on each side
+    float halfDepth = 0.5f * depth;
+
+    // Loop over all the sides creating the vertices
+    for (unsigned int i = 0; i < sides; ++i)
+    {
+        // Detect if it is a cog or a hole
+        bool isCog = i % 2 == 1;
+        int cogSign = isCog ? 1 : -1;
+
+        // Add vertices
+        {
+            // Precompute normals
+            glm::vec3 frontNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+            glm::vec2 teethNormal2D(halfDepth * (1.0f - cogRatio), addendum);
+            teethNormal2D = glm::normalize(teethNormal2D);
+            glm::vec3 teethFrontNormal(0);
+            glm::vec3 teethBackNormal(0);
+
+            // Inner circle
+            float innerAngle = i * deltaAngle;
+            glm::vec2 innerDirection(std::sin(innerAngle), std::cos(innerAngle));
+            glm::vec3 innerFrontPosition = glm::vec3(innerDirection * innerRadius, halfDepth);
+            glm::vec3 innerBackPosition = glm::vec3(innerDirection * innerRadius, -halfDepth);
+            vertices.emplace_back(innerFrontPosition, frontNormal); // 0
+            vertices.emplace_back(innerBackPosition, -frontNormal); // 1
+            // Break for center hole normals
+            vertices.emplace_back(innerFrontPosition, glm::vec3(-innerDirection, 0.0f)); // 2
+            vertices.emplace_back(innerBackPosition, glm::vec3(-innerDirection, 0.0f));  // 3
+
+            // Outer circle
+            float outerAngle = innerAngle + offsetOuterAngle * cogSign;
+            glm::vec2 outerDirection(std::sin(outerAngle), std::cos(outerAngle));
+            glm::vec3 outerFrontPosition = glm::vec3(outerDirection * outerRadius, halfDepth);
+            glm::vec3 outerBackPosition = glm::vec3(outerDirection * outerRadius, -halfDepth);
+            vertices.emplace_back(outerFrontPosition, frontNormal);  // 4
+            vertices.emplace_back(outerBackPosition, -frontNormal);  // 5
+            // Break for teeth front normals
+            teethFrontNormal = glm::vec3(outerDirection * teethNormal2D.x, teethNormal2D.y);
+            teethBackNormal = glm::vec3(outerDirection * teethNormal2D.x, -teethNormal2D.y);
+            vertices.emplace_back(outerFrontPosition, teethFrontNormal); // 6
+            vertices.emplace_back(outerBackPosition, teethBackNormal);   // 7
+            // Break for teeth hole normals
+            vertices.emplace_back(outerFrontPosition, glm::vec3(outerDirection, 0.0f)); // 8
+            vertices.emplace_back(outerBackPosition, glm::vec3(outerDirection, 0.0f));  // 9
+            // Break for teeth side normals
+            float sideAngle = offsetTeethAngle - offsetOuterAngle;
+            glm::vec3 teethSideNormal(std::sin(sideAngle) * innerDirection - cogSign * std::cos(sideAngle) * glm::vec2(innerDirection.y, -innerDirection.x), 0.0f);
+            vertices.emplace_back(outerFrontPosition, teethSideNormal); // 10
+            vertices.emplace_back(outerBackPosition, teethSideNormal);  // 11
+
+            // Teeth circle
+            float teethAngle = innerAngle + offsetTeethAngle * cogSign;
+            glm::vec2 teethDirection(std::sin(teethAngle), std::cos(teethAngle));
+            glm::vec3 teethFrontPosition = glm::vec3(teethDirection * teethRadius, halfDepth * cogRatio);
+            glm::vec3 teethBackPosition = glm::vec3(teethDirection * teethRadius, -halfDepth * cogRatio);
+            teethFrontNormal = glm::vec3(teethDirection * teethNormal2D.x, teethNormal2D.y);
+            teethBackNormal = glm::vec3(teethDirection * teethNormal2D.x, -teethNormal2D.y);
+            vertices.emplace_back(teethFrontPosition, teethFrontNormal); // 12
+            vertices.emplace_back(teethBackPosition, teethBackNormal);   // 13
+            // Break for teeth cap normals
+            vertices.emplace_back(teethFrontPosition, glm::vec3(teethDirection, 0.0f)); // 14
+            vertices.emplace_back(teethBackPosition, glm::vec3(teethDirection, 0.0f));  // 15
+            // Break for teeth side normals
+            vertices.emplace_back(teethFrontPosition, teethSideNormal); // 16
+            vertices.emplace_back(teethBackPosition, teethSideNormal);  // 17
+        }
+
+        // Add triangles
+        {
+            unsigned vertexPerSide = 18;
+            unsigned short index0 = vertexPerSide * i;
+            unsigned short index1 = vertexPerSide * ((i + 1) % sides);
+
+            // Body (Front)
+            indices.push_back(index0 + 0); indices.push_back(index1 + 0); indices.push_back(index0 + 4);
+            indices.push_back(index0 + 4); indices.push_back(index1 + 0); indices.push_back(index1 + 4);
+            // Body (Back)
+            indices.push_back(index0 + 1); indices.push_back(index1 + 1); indices.push_back(index0 + 5);
+            indices.push_back(index0 + 5); indices.push_back(index1 + 1); indices.push_back(index1 + 5);
+            // Center hole
+            indices.push_back(index0 + 3); indices.push_back(index1 + 3); indices.push_back(index0 + 2);
+            indices.push_back(index0 + 2); indices.push_back(index1 + 3); indices.push_back(index1 + 2);
+
+            // Cog side
+            indices.push_back(index0 + 10); indices.push_back(index0 + 16); indices.push_back(index0 + 11);
+            indices.push_back(index0 + 11); indices.push_back(index0 + 16); indices.push_back(index0 + 17);
+            if (isCog)
+            {
+                // Cog (Front)
+                indices.push_back(index0 + 6); indices.push_back(index1 + 6); indices.push_back(index0 + 12);
+                indices.push_back(index0 + 12); indices.push_back(index1 + 6); indices.push_back(index1 + 12);
+                // Cog (Back)
+                indices.push_back(index0 + 7); indices.push_back(index1 + 7); indices.push_back(index0 + 13);
+                indices.push_back(index0 + 13); indices.push_back(index1 + 7); indices.push_back(index1 + 13);
+                // Cog cap
+                indices.push_back(index0 + 15); indices.push_back(index0 + 14); indices.push_back(index1 + 15);
+                indices.push_back(index1 + 15); indices.push_back(index0 + 14); indices.push_back(index1 + 14);
+            }
+            else
+            {
+                //Cog hole
+                indices.push_back(index0 + 9); indices.push_back(index0 + 8); indices.push_back(index1 + 9);
+                indices.push_back(index1 + 9); indices.push_back(index0 + 8); indices.push_back(index1 + 8);
+            }
+        }
+    }
 
     // Finally create the new submesh with all the data
     mesh.AddSubmesh<Vertex, unsigned short, VertexFormat::LayoutIterator>(Drawcall::Primitive::Triangles, vertices, indices,
