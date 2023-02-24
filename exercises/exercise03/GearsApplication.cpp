@@ -70,8 +70,10 @@ void GearsApplication::Render()
     glm::mat4 topLeftGearMatrix(glm::translate(glm::vec3(-1.0f, 1.0f, 0.0f)) * glm::rotate(speed * time * leftRatio - 0.05f, axis) * glm::scale(glm::vec3(7.5f)));
     DrawGear(m_smallGear, topLeftGearMatrix, Color(0.3f, 0.2f, 1.0f));
 
-    // (todo) 03.4: Draw small gear linked to the center gear
-
+    // Draw small gear linked to the center gear
+    float linkedRatio = -1.0f;
+    glm::mat4 linkedGearMatrix(glm::translate(glm::vec3(0.0f, 0.2f, 0.0f)) * glm::rotate(speed * time * linkedRatio, axis));
+    DrawGear(m_smallGear, centerGearMatrix * linkedGearMatrix, Color(0.8f, 0.8f, 0.2f));
 
     Application::Render();
 }
