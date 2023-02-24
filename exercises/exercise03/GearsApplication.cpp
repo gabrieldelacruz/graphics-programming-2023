@@ -41,8 +41,17 @@ void GearsApplication::Update()
     window.GetDimensions(width, height);
 
     float aspectRatio = static_cast<float>(width) / height;
-    glm::vec3 halfSize(aspectRatio, 1.0f, 10.0f);
-    m_camera.SetOrthographicProjectionMatrix(-halfSize, halfSize);
+
+    bool perspective = true;
+    if (perspective)
+    {
+        m_camera.SetPerspectiveProjectionMatrix(static_cast<float>(std::numbers::pi) * 0.5f, aspectRatio, 0.1f, 10.0f);
+    }
+    else
+    {
+        glm::vec3 halfSize(aspectRatio, 1.0f, 10.0f);
+        m_camera.SetOrthographicProjectionMatrix(-halfSize, halfSize);
+    }
 
     glm::vec2 mousePosition = window.GetMousePosition(true);
     m_camera.SetViewMatrix(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(mousePosition, 0.0f));
