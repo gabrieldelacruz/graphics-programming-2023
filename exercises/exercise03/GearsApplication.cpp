@@ -58,10 +58,12 @@ void GearsApplication::Render()
 
     // Draw large gear at the center
     glm::mat4 centerGearMatrix(glm::rotate(speed * time, axis));
-    DrawGear(m_largeGear, centerGearMatrix, Color(1.0f, 1.0f, 1.0f));
+    DrawGear(m_largeGear, centerGearMatrix, Color(1.0f, 0.2f, 0.3f));
 
-    // (todo) 03.2: Draw medium gear to the right
-
+    // Draw medium gear to the right
+    float rightRatio = -16.0f / 8.0f;
+    glm::mat4 rightGearMatrix(glm::translate(glm::vec3(0.75f, 0.0f, 0.0f)) * glm::rotate(speed * time * rightRatio, axis));
+    DrawGear(m_mediumGear, rightGearMatrix, Color(0.2f, 1.0f, 0.3f));
 
     // (todo) 03.3: Draw small gear at the top-left corner
 
