@@ -1,6 +1,7 @@
 #include <ituGL/shader/ShaderProgram.h>
 
 #include <ituGL/shader/Shader.h>
+#include <ituGL/texture/TextureObject.h>
 #include <cassert>
 
 #ifndef NDEBUG
@@ -21,6 +22,16 @@ ShaderProgram::~ShaderProgram()
         glDeleteProgram(handle);
         handle = NullHandle;
     }
+}
+
+ShaderProgram::ShaderProgram(ShaderProgram&& shaderProgram) noexcept : Object(std::move(shaderProgram))
+{
+}
+
+ShaderProgram& ShaderProgram::operator = (ShaderProgram&& shaderProgram) noexcept
+{
+    Object::operator=(std::move(shaderProgram));
+    return *this;
 }
 
 // Bind should not be called for ShaderProgram
@@ -135,6 +146,19 @@ ShaderProgram::Location ShaderProgram::GetUniformLocation(const char* name) cons
     return glGetUniformLocation(GetHandle(), name);
 }
 
+// Get how many uniforms exist in this shader program
+unsigned int ShaderProgram::GetUniformCount() const
+{
+    GLint uniformCount;
+    glGetProgramiv(GetHandle(), GL_ACTIVE_UNIFORMS, &uniformCount);
+    return uniformCount;
+}
+
+// Get information about a specific uniform
+void ShaderProgram::GetUniformInfo(unsigned int index, int& size, GLenum& glType, std::span<char> uniformName) const
+{
+    glGetActiveUniform(GetHandle(), index, uniformName.size(), nullptr, &size, &glType, uniformName.data());
+}
 
 // All the different combinations of Get/SetUniform
 template<>
@@ -367,4 +391,13 @@ void ShaderProgram::SetUniforms<GLfloat, 4, 4>(Location location, const GLfloat*
     assert(IsValid());
     assert(IsUsed());
     glUniformMatrix4fv(location, count, false, values);
+}
+
+void ShaderProgram::SetTexture(Location location, GLint textureUnit, const TextureObject& texture)
+{
+    assert(IsValid());
+    assert(IsUsed());
+    TextureObject::SetActiveTexture(textureUnit);
+    texture.Bind();
+    SetUniform(location, textureUnit);
 }

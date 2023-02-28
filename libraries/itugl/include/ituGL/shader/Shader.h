@@ -24,6 +24,11 @@ public:
     Shader(Type type);
     virtual ~Shader();
 
+    // (C++) 8
+    // Move semantics
+    Shader(Shader&& shader) noexcept;
+    Shader& operator = (Shader&& shader) noexcept;
+
     // Implements the Bind required by Object. Shaders and shader programs don't use Bind()
     void Bind() const override;
 

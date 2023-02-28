@@ -19,6 +19,7 @@
 #include <span>
 
 class Shader;
+class TextureObject;
 
 // ShaderProgram is an OpenGL Object that represents all the shaders needed to draw primitives
 class ShaderProgram : public Object
@@ -31,6 +32,11 @@ public:
 public:
     ShaderProgram();
     virtual ~ShaderProgram();
+
+    // (C++) 8
+    // Move semantics
+    ShaderProgram(ShaderProgram&& shaderProgram) noexcept;
+    ShaderProgram& operator = (ShaderProgram&& shaderProgram) noexcept;
 
     // Implements the Bind required by Object. Shaders and shader programs don't use Bind()
     void Bind() const override;
@@ -78,6 +84,12 @@ public:
     // Find a uniform location by name
     Location GetUniformLocation(const char *name) const;
 
+    // Get how many uniforms exist in this shader program
+    unsigned int GetUniformCount() const;
+
+    // Get information about a specific uniform
+    void GetUniformInfo(unsigned int index, int& size, GLenum& glType, std::span<char> uniformName) const;
+
     // Template method combinations to simplify getting uniforms
     template<typename T>
     void GetUniform(Location location, T& value) const;
@@ -97,6 +109,9 @@ public:
     void SetUniforms(Location location, std::span<const glm::vec<N, T>> values);
     template<typename T, int C, int R>
     void SetUniforms(Location location, std::span<const glm::mat<C, R, T>> values);
+
+    // Set texture value for a texture uniform
+    void SetTexture(Location location, GLint textureUnit, const TextureObject& texture);
 
     // Set the shader program as the active one to be used for rendering
     void Use() const;

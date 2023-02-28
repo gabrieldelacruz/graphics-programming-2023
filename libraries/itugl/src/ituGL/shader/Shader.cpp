@@ -18,6 +18,16 @@ Shader::~Shader()
     }
 }
 
+Shader::Shader(Shader&& shader) noexcept : Object(std::move(shader))
+{
+}
+
+Shader& Shader::operator = (Shader&& shader) noexcept
+{
+    Object::operator=(std::move(shader));
+    return *this;
+}
+
 // Bind should not be called for Shader
 void Shader::Bind() const
 {
