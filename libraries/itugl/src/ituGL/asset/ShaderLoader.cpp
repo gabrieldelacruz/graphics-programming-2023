@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <array>
+#include <cassert>
 
 #include <iostream>
 
@@ -25,11 +26,10 @@ Shader ShaderLoader::Load(const char* path)
 {
     Shader shader(m_type);
     std::ifstream file(path);
+    assert(file.is_open());
     std::stringstream stringStream;
-    std::string sourceCodeString;
     stringStream << file.rdbuf() << '\0';
-    sourceCodeString = stringStream.str();
-    shader.SetSource(sourceCodeString.c_str());
+    shader.SetSource(stringStream.str().c_str());
     Compile(shader);
     return shader;
 }
@@ -43,6 +43,7 @@ Shader ShaderLoader::Load(std::span<const char*> paths)
     for (int i = 0; i < paths.size(); ++i)
     {
         std::ifstream file(paths[i]);
+        assert(file.is_open());
         stringStreams[i] << file.rdbuf() << '\0';
         sourceCodeStrings[i] = stringStreams[i].str();
         sourceCode[i] = sourceCodeStrings[i].c_str();
