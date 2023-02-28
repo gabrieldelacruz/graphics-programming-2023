@@ -26,8 +26,10 @@ Shader ShaderLoader::Load(const char* path)
     Shader shader(m_type);
     std::ifstream file(path);
     std::stringstream stringStream;
+    std::string sourceCodeString;
     stringStream << file.rdbuf() << '\0';
-    shader.SetSource(stringStream.str().c_str());
+    sourceCodeString = stringStream.str();
+    shader.SetSource(sourceCodeString.c_str());
     Compile(shader);
     return shader;
 }
