@@ -14,7 +14,7 @@ uniform sampler2D Heightmap;
 
 void main()
 {
-	float height = texture(Heightmap, VertexPosition.xz).r;
+	float height = texture(Heightmap, (VertexPosition.xz * 127 + 0.5f) / 128).r;
 	WorldPosition = (WorldMatrix * vec4(VertexPosition.x, height, VertexPosition.z, 1.0)).xyz;
 	WorldNormal = (WorldMatrix * vec4(VertexNormal, 0.0)).xyz;
 	TexCoord = VertexTexCoord;
