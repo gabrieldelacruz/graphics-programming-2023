@@ -21,6 +21,11 @@ Material::Material(std::shared_ptr<ShaderProgram> shaderProgram, const NameSet& 
 {
 }
 
+void Material::SetShaderSetupFunction(ShaderSetupFunction shaderSetupFunction)
+{
+    m_shaderSetupFunction = shaderSetupFunction;
+}
+
 void Material::SetDepthTestFunction(TestFunction function)
 {
     m_depthTestFunction = function;
@@ -126,6 +131,12 @@ void Material::Use(OverrideFlags overrideFlags) const
 
     // Set the value of all the uniforms stored as properties
     SetUniforms();
+
+    if (m_shaderSetupFunction)
+    {
+        // if needed, do extra set up for the shader
+        m_shaderSetupFunction(*m_shaderProgram);
+    }
 
     // If not skipped, set the depth settings
     if ((overrideFlags & OverrideFlags::OverrideDepthTest) == 0)

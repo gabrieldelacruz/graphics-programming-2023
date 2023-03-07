@@ -20,6 +20,9 @@ public:
     // Get the current dimensions (width and height) of the window
     void GetDimensions(int& width, int& height) const;
 
+    // Get the ratio between width and height of the window
+    float GetAspectRatio() const;
+
     // Tell the window that it should close
     void Close();
 

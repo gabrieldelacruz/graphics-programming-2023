@@ -23,6 +23,9 @@ public:
     template<typename T>
     void UpdateData(std::span<const T> data, size_t offsetBytes = 0);
 
+    // Returns the smallest type that can hold vertexCount indices
+    static Data::Type GetSmallestType(unsigned int vertexCount);
+
 #ifndef NDEBUG
     // Check if a data type is supported to be used as index
     static bool IsSupportedType(Data::Type type);

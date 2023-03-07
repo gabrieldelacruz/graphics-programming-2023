@@ -20,6 +20,8 @@ public:
     Shader* LoadNew(std::span<const char*> paths);
     bool LoadInto(Shader& shader, std::span<const char*> paths);
 
+    static Shader Load(Shader::Type type, const char* path);
+
 private:
     void Compile(Shader& shader);
 

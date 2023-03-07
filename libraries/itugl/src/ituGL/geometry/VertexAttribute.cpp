@@ -1,9 +1,15 @@
 #include <ituGL/geometry/VertexAttribute.h>
 
-VertexAttribute::VertexAttribute(Data::Type type, int components, bool normalized)
+VertexAttribute::VertexAttribute(Data::Type type, int components, Semantic semantic)
+    : VertexAttribute(type, components, false, semantic)
+{
+}
+
+VertexAttribute::VertexAttribute(Data::Type type, int components, bool normalized, Semantic semantic)
     : m_type(type)
     , m_components(components)
     , m_normalized(normalized)
+    , m_semantic(semantic)
 {
 }
 

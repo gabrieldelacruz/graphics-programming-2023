@@ -10,9 +10,9 @@ void VertexFormat::Clear()
     m_size = 0;
 }
 
-void VertexFormat::AddVertexAttribute(Data::Type type, int components, bool normalized)
+void VertexFormat::AddVertexAttribute(Data::Type type, int components, bool normalized, VertexAttribute::Semantic semantic)
 {
-    m_attributes.emplace_back(type, components, normalized);
+    m_attributes.emplace_back(type, components, normalized, semantic);
     int attributeSize = m_attributes.back().GetSize();
     m_size += attributeSize;
 }

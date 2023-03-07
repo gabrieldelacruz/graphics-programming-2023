@@ -82,3 +82,9 @@ void ShaderLoader::Compile(Shader& shader)
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog.data() << std::endl;
     }
 }
+
+Shader ShaderLoader::Load(Shader::Type type, const char* path)
+{
+    ShaderLoader shaderLoader(type);
+    return shaderLoader.Load(path);
+}

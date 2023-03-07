@@ -3,6 +3,7 @@
 #include <ituGL/shader/ShaderUniformCollection.h>
 
 #include <ituGL/core/Color.h>
+#include <functional>
 #include <array>
 
 // Class to group all the properties that may affect the look of a rendered geometry
@@ -31,10 +32,17 @@ public:
     // source color, destination color, source alpha, destination alpha
     enum class BlendParam : GLenum;
 
+    // Function pointer to prepare the shader used by the material that is being rendered
+    using ShaderSetupFunction = std::function<void(ShaderProgram&)>;
+
 public:
     Material();
     // Initialize with the shader program, will extract all the properties. Skip the names in filtered uniforms
     Material(std::shared_ptr<ShaderProgram> shaderProgram, const NameSet& filteredUniforms = NameSet());
+
+
+    // Set the function that will be executed for additional shader program setup
+    void SetShaderSetupFunction(ShaderSetupFunction shaderSetupFunction);
 
 
     // Set the test function for the depth test, if depth test is enabled
@@ -101,6 +109,9 @@ private:
     void UseBlend() const;
 
 private:
+    // Function pointer to prepare the shader used by the material
+    ShaderSetupFunction m_shaderSetupFunction;
+
     // Test function for depth. Default: Less
     TestFunction m_depthTestFunction;
 

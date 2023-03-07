@@ -27,6 +27,14 @@ void Window::GetDimensions(int& width, int& height) const
     glfwGetWindowSize(m_window, &width, &height);
 }
 
+// Get the ratio between width and height of the window
+float Window::GetAspectRatio() const
+{
+    int width, height;
+    GetDimensions(width, height);
+    return static_cast<float>(width) / height;
+}
+
 // Tell the window that it should close
 void Window::Close()
 {
