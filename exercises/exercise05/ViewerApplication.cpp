@@ -63,6 +63,45 @@ void ViewerApplication::Cleanup()
 
 void ViewerApplication::InitializeModel()
 {
+    // Load and build shader
+    Shader vertexShader = ShaderLoader::Load(Shader::VertexShader, "shaders/unlit.vert");
+    Shader fragmentShader = ShaderLoader::Load(Shader::FragmentShader, "shaders/unlit.frag");
+    std::shared_ptr<ShaderProgram> shaderProgram = std::make_shared<ShaderProgram>();
+    shaderProgram->Build(vertexShader, fragmentShader);
+
+    // Filter out uniforms that are not material properties
+    ShaderUniformCollection::NameSet filteredUniforms;
+    filteredUniforms.insert("WorldMatrix");
+    filteredUniforms.insert("ViewProjMatrix");
+
+    // Create reference material
+    std::shared_ptr<Material> material = std::make_shared<Material>(shaderProgram, filteredUniforms);
+    material->SetUniformValue("Color", glm::vec4(1.0f));
+
+    // Setup function
+    ShaderProgram::Location worldMatrixLocation = shaderProgram->GetUniformLocation("WorldMatrix");
+    ShaderProgram::Location viewProjMatrixLocation = shaderProgram->GetUniformLocation("ViewProjMatrix");
+    material->SetShaderSetupFunction([=](ShaderProgram& shaderProgram)
+        {
+            shaderProgram.SetUniform(worldMatrixLocation, glm::scale(glm::vec3(0.1f)));
+            shaderProgram.SetUniform(viewProjMatrixLocation, m_camera.GetViewProjectionMatrix());
+
+            // (todo) 05.X: Set camera and light uniforms
+
+
+        });
+
+    // Configure loader
+    ModelLoader loader(material);
+    loader.SetMaterialAttribute(VertexAttribute::Semantic::Position, "VertexPosition");
+    loader.SetMaterialAttribute(VertexAttribute::Semantic::Normal, "VertexNormal");
+    loader.SetMaterialAttribute(VertexAttribute::Semantic::TexCoord0, "VertexTexCoord");
+
+    // Load model
+    m_model = loader.Load("models/mill/Mill.obj");
+
+    // (todo) 05.1: Load and set textures
+
 }
 
 void ViewerApplication::InitializeCamera()
