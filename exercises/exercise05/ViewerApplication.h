@@ -46,8 +46,12 @@ private:
     // Loaded model
     Model m_model;
 
-    // (todo) 05.X: Add light variables
+    // Add light variables
+    glm::vec3 m_ambientColor;
+    glm::vec3 m_lightColor;
+    float m_lightIntensity;
+    glm::vec3 m_lightPosition;
 
-
-
+    // Specular exponent debug
+    float m_specularExponentGrass;
 };
