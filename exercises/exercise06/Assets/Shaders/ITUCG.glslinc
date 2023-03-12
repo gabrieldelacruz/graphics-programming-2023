@@ -1,0 +1,94 @@
+
+
+// Unity ambient color
+uniform vec4 unity_AmbientSky;
+
+// Color of main light
+uniform vec4 _LightColor0;
+
+// Get the direction from the fragment position to the camera
+vec3 GetWorldSpaceViewDir(vec3 worldPos)
+{
+	return normalize(_WorldSpaceCameraPos.xyz - worldPos);
+}
+
+// Get the direction from the fragment position to the light
+vec3 GetWorldSpaceLightDir(vec3 worldPos)
+{
+	// 2 modes:
+	// - Directional lights: _WorldSpaceLightPos0.xyz is the direction already, _WorldSpaceLightPos0.w is 0
+	// - Point and spot lights: _WorldSpaceLightPos0.xyz is the position of the light, _WorldSpaceLightPos0.w is 1
+	return normalize(_WorldSpaceLightPos0.xyz - worldPos * _WorldSpaceLightPos0.w);
+}
+
+// Transform the texture coordinates
+vec2 TransformTexCoords(vec2 texCoords, vec4 transform)
+{
+	// transform.xy contains the scale value
+	// transform.zw contains the offset value
+	return texCoords * transform.xy + transform.zw;
+}
+
+// Helper function to sample a normal texture
+vec3 textureNormal(sampler2D normalMap, vec2 texCoords)
+{
+	// Only 2 values are stored in the texture, w and y (X and Y of the normal)
+	vec3 normal = texture(normalMap, texCoords).wyy;
+
+	// Values are stored in the range (0, 1), we need to convert them to (-1, 1)
+	normal.xy = normal.xy * 2.0f - 1.0f;
+
+	// Z component is implicit. Since X*X + Y*Y + Z*Z == 1, we can obtain Z with the values of X and Y
+	normal.z = sqrt(1.0f - normal.x * normal.x - normal.y * normal.y);
+	return normal;
+}
+
+// Get a matrix to convert from tangent space to world space
+mat3 GetTangentToWorldMatrix(vec3 normal, vec4 tangent)
+{
+	// Compute the binormal as a vector that is orthogonal to both normal and tangent
+	vec3 binormal = normalize(cross(normal, tangent.xyz)) * tangent.w;
+	// Since tangent may have been interpolated, we force orthonormality
+	tangent.xyz = cross(normal, binormal);
+	// Build the matrix with tangent, binormal, and normal vectors
+	return mat3(tangent.xyz, binormal, normal);
+}
+
+// Ambient component of the Phong reflection model
+vec3 GetAmbientLighting(float ambientReflectance, vec3 color)
+{
+	return ambientReflectance * color * unity_AmbientSky.rgb;
+}
+
+// Diffuse component of the Phong reflection model
+vec3 GetDiffuseLighting(float diffuseReflectance, vec3 color, vec3 normal, vec3 lightDir)
+{
+	return diffuseReflectance * saturate(dot(normal, lightDir)) * color * _LightColor0.rgb;
+}
+
+// Specular component of the Phong reflection model
+vec3 GetSpecularLighting(float specularReflectance, float specularExponent, vec3 specularColor, vec3 normal, vec3 lightDir, vec3 viewDir)
+{
+	vec3 halfDir = normalize(lightDir + viewDir);
+	return specularReflectance * pow(saturate(dot(normal, halfDir)), specularExponent) * specularColor * _LightColor0.rgb;
+}
+
+// Compute Blinn-Phonn lighting model
+vec3 BlinnPhongLighting(
+	vec3 lightDir, vec3 viewDir, vec3 normal,
+	vec3 color, vec3 specularColor,
+	float ambientReflectance, float diffuseReflectance, float specularReflectance,
+	float specularExponent)
+{
+	vec3 ambient = GetAmbientLighting(ambientReflectance, color);
+	vec3 diffuse = GetDiffuseLighting(diffuseReflectance, color, normal, lightDir);
+	vec3 specular = GetSpecularLighting(specularReflectance, specularExponent, specularColor, normal, lightDir, viewDir);
+	return ambient + diffuse + specular;
+}
+
+// Compute the color perceived luminance
+// https://en.wikipedia.org/wiki/Relative_luminance
+float GetColorLuminance(vec3 color)
+{
+	return dot(color, vec3(0.2126f, 0.7152f, 0.0722f));
+}
