@@ -38,5 +38,5 @@ vec3 ComputeSpecularLighting(SurfaceData data, vec3 lightDir, vec3 viewDir)
 
    specularIntensity = pow(specularIntensity, data.specularExponent);
 
-   return specularIntensity * data.specularReflectance;
+   return vec3(specularIntensity * data.specularReflectance);
 }
