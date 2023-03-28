@@ -13,6 +13,10 @@ class VertexFormat;
 class ModelLoader : public AssetLoader<Model>
 {
 public:
+    // Enum to read material properties from the file
+    enum class MaterialProperty;
+
+public:
     ModelLoader(std::shared_ptr<Material> referenceMaterial = nullptr);
 
     std::shared_ptr<Material> GetReferenceMaterial() const;
@@ -26,6 +30,9 @@ public:
 
     // Maps a semantic to an attribute in the shader program used by the material
     bool SetMaterialAttribute(VertexAttribute::Semantic semantic, const char* attributeName);
+
+    // Maps a material property to a uniform in the shader program used by the material
+    bool SetMaterialProperty(MaterialProperty materialProperty, const char* uniformName);
 
 private:
     // Generate a submesh from the loaded mesh data
@@ -51,12 +58,27 @@ private:
     static Drawcall::Primitive GetPrimitiveType(int elementCount);
 
 private:
+    // Path to the base folder where we are loading the current model
+    std::string m_baseFolder;
+
     // Pointer to the reference material
     std::shared_ptr<Material> m_referenceMaterial;
 
     // Maps the semantic to attributes in the reference material
     Mesh::SemanticMap m_materialAttributeMap;
 
+    // Maps material properties to uniforms in the reference material
+    std::unordered_map <MaterialProperty, ShaderProgram::Location> m_materialPropertyMap;
+
     // Should create new materials for each submesh or use the reference material
     bool m_createMaterials;
+};
+
+enum class ModelLoader::MaterialProperty
+{
+    AmbientColor,
+    DiffuseColor,
+    SpecularColor,
+    SpecularExponent,
+    DiffuseTexture,
 };

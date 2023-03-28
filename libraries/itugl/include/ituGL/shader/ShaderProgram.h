@@ -102,16 +102,16 @@ public:
 
     // Template method combinations to simplify setting uniforms
     template<typename T>
-    void SetUniform(Location location, const T& value);
+    void SetUniform(Location location, const T& value) const;
     template<typename T>
-    void SetUniforms(Location location, std::span<const T> values);
+    void SetUniforms(Location location, std::span<const T> values) const;
     template<typename T, int N>
-    void SetUniforms(Location location, std::span<const glm::vec<N, T>> values);
+    void SetUniforms(Location location, std::span<const glm::vec<N, T>> values) const;
     template<typename T, int C, int R>
-    void SetUniforms(Location location, std::span<const glm::mat<C, R, T>> values);
+    void SetUniforms(Location location, std::span<const glm::mat<C, R, T>> values) const;
 
     // Set texture value for a texture uniform
-    void SetTexture(Location location, GLint textureUnit, const TextureObject& texture);
+    void SetTexture(Location location, GLint textureUnit, const TextureObject& texture) const;
 
     // Set the shader program as the active one to be used for rendering
     void Use() const;
@@ -134,9 +134,9 @@ private:
 
     // Helper template methods for setting uniforms
     template<typename T, int N>
-    void SetUniforms(Location location, const T* values, GLsizei count);
+    void SetUniforms(Location location, const T* values, GLsizei count) const;
     template<typename T, int C, int R>
-    void SetUniforms(Location location, const T* values, GLsizei count);
+    void SetUniforms(Location location, const T* values, GLsizei count) const;
 
 private:
 #ifndef NDEBUG
@@ -182,57 +182,57 @@ void ShaderProgram::GetUniforms(ShaderProgram::Location location, std::span<T> v
 }
 
 template<typename T>
-void ShaderProgram::SetUniform(Location location, const T& value)
+void ShaderProgram::SetUniform(Location location, const T& value) const
 {
     SetUniforms(location, std::span(&value, 1));
 }
 
 template<typename T>
-void ShaderProgram::SetUniforms(Location location, std::span<const T> values)
+void ShaderProgram::SetUniforms(Location location, std::span<const T> values) const
 {
     SetUniforms<T, 1>(location, &values[0], static_cast<GLsizei>(values.size()));
 }
 
 template<typename T, int N>
-void ShaderProgram::SetUniforms(Location location, std::span<const glm::vec<N, T>> values)
+void ShaderProgram::SetUniforms(Location location, std::span<const glm::vec<N, T>> values) const
 {
     SetUniforms<T, N>(location, &values[0][0], static_cast<GLsizei>(values.size()));
 }
 
 template<typename T, int C, int R>
-void ShaderProgram::SetUniforms(Location location, std::span<const glm::mat<C, R, T>> values)
+void ShaderProgram::SetUniforms(Location location, std::span<const glm::mat<C, R, T>> values) const
 {
     SetUniforms<T, C, R>(location, &values[0][0][0], static_cast<GLsizei>(values.size()));
 }
 
-template<> void ShaderProgram::SetUniforms<GLint, 1>(Location location, const GLint* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLint, 2>(Location location, const GLint* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLint, 3>(Location location, const GLint* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLint, 4>(Location location, const GLint* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLint, 1>(Location location, const GLint* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLint, 2>(Location location, const GLint* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLint, 3>(Location location, const GLint* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLint, 4>(Location location, const GLint* values, GLsizei count) const;
 
-template<> void ShaderProgram::SetUniforms<GLuint, 1>(Location location, const GLuint* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLuint, 2>(Location location, const GLuint* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLuint, 3>(Location location, const GLuint* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLuint, 4>(Location location, const GLuint* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLuint, 1>(Location location, const GLuint* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLuint, 2>(Location location, const GLuint* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLuint, 3>(Location location, const GLuint* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLuint, 4>(Location location, const GLuint* values, GLsizei count) const;
 
-template<> void ShaderProgram::SetUniforms<GLfloat, 1>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 2>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 3>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 4>(Location location, const GLfloat* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLfloat, 1>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 2>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 3>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 4>(Location location, const GLfloat* values, GLsizei count) const;
 
-template<> void ShaderProgram::SetUniforms<GLdouble, 1>(Location location, const GLdouble* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLdouble, 2>(Location location, const GLdouble* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLdouble, 3>(Location location, const GLdouble* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLdouble, 4>(Location location, const GLdouble* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLdouble, 1>(Location location, const GLdouble* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLdouble, 2>(Location location, const GLdouble* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLdouble, 3>(Location location, const GLdouble* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLdouble, 4>(Location location, const GLdouble* values, GLsizei count) const;
 
-template<> void ShaderProgram::SetUniforms<GLfloat, 2, 2>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 2, 3>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 2, 4>(Location location, const GLfloat* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLfloat, 2, 2>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 2, 3>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 2, 4>(Location location, const GLfloat* values, GLsizei count) const;
 
-template<> void ShaderProgram::SetUniforms<GLfloat, 3, 2>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 3, 3>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 3, 4>(Location location, const GLfloat* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLfloat, 3, 2>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 3, 3>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 3, 4>(Location location, const GLfloat* values, GLsizei count) const;
 
-template<> void ShaderProgram::SetUniforms<GLfloat, 4, 2>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 4, 3>(Location location, const GLfloat* values, GLsizei count);
-template<> void ShaderProgram::SetUniforms<GLfloat, 4, 4>(Location location, const GLfloat* values, GLsizei count);
+template<> void ShaderProgram::SetUniforms<GLfloat, 4, 2>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 4, 3>(Location location, const GLfloat* values, GLsizei count) const;
+template<> void ShaderProgram::SetUniforms<GLfloat, 4, 4>(Location location, const GLfloat* values, GLsizei count) const;

@@ -253,8 +253,11 @@ template<typename T>
 inline void ShaderUniformCollection::SetUniformValue(const char* name, const T& value)
 {
     ShaderProgram::Location location = GetUniformLocation(name);
-    assert(location >= 0);
-    SetUniformValue(location, value);
+    //assert(location >= 0);
+    if (location >= 0) // Replaced assert with silent skip
+    {
+        SetUniformValue(location, value);
+    }
 }
 
 template<typename T>

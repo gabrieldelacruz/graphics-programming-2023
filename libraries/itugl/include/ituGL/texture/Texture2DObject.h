@@ -9,6 +9,11 @@ class Texture2DObject : public TextureObjectBase<TextureObject::Texture2D>
 public:
     Texture2DObject();
 
+    // Initialize the texture2D with a specific format
+    void SetImage(GLint level,
+        GLsizei width, GLsizei height,
+        Format format, InternalFormat internalFormat);
+
     // Initialize the texture2D with a specific format and initial data
     template <typename T>
     void SetImage(GLint level,

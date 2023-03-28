@@ -41,14 +41,16 @@ public:
     Material(std::shared_ptr<ShaderProgram> shaderProgram, const NameSet& filteredUniforms = NameSet());
 
 
-    // Set the function that will be executed for additional shader program setup
+    // The function that will be executed for additional shader program setup
     void SetShaderSetupFunction(ShaderSetupFunction shaderSetupFunction);
 
 
-    // Set the test function for the depth test, if depth test is enabled
+    // The test function for the depth test, if depth test is enabled
+    TestFunction GetDepthTestFunction() const;
     void SetDepthTestFunction(TestFunction function);
 
-    // Set if the geometry should write to depth buffer, if depth test is enabled
+    // If the geometry should write to depth buffer, if depth test is enabled
+    bool GetDepthWrite() const;
     void SetDepthWrite(bool depthWrite);
 
 
@@ -58,21 +60,27 @@ public:
     void SetStencilTestFunction(TestFunction function, int refValue, unsigned int mask);
 
     // Set the test function to use for stencil, only for front faces
+    TestFunction GetStencilFrontTestFunction(int& refValue, unsigned int& mask) const;
     void SetStencilFrontTestFunction(TestFunction function, int refValue, unsigned int mask);
 
     // Set the test function to use for stencil, only for back faces
+    TestFunction GetStencilBackTestFunction(int& refValue, unsigned int& mask) const;
     void SetStencilBackTestFunction(TestFunction function, int refValue, unsigned int mask);
 
     // Set the stencil operations, front and back
     void SetStencilOperations(StencilOperation stencilFail, StencilOperation depthFail, StencilOperation depthPass);
 
     // Set the stencil operations, only for front faces
+    void GetStencilFrontOperations(StencilOperation &stencilFail, StencilOperation &depthFail, StencilOperation &depthPass) const;
     void SetStencilFrontOperations(StencilOperation stencilFail, StencilOperation depthFail, StencilOperation depthPass);
 
     // Set the stencil operations, only for back faces
+    void GetStencilBackOperations(StencilOperation& stencilFail, StencilOperation& depthFail, StencilOperation& depthPass) const;
     void SetStencilBackOperations(StencilOperation stencilFail, StencilOperation depthFail, StencilOperation depthPass);
 
     // Set the same blend equation for color and alpha. By default and most common: Add
+    BlendEquation GetBlendEquationColor() const;
+    BlendEquation GetBlendEquationAlpha() const;
     void SetBlendEquation(BlendEquation blendEquation);
 
     // Set separate blend equation for color and alpha. By default and most common: Add
