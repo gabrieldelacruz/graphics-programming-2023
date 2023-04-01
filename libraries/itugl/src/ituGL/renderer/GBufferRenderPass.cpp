@@ -18,7 +18,8 @@ void GBufferRenderPass::InitFramebuffer()
 
     m_framebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Depth, *m_depthTexture);
 
-    // (todo) 07.2: Set the albedo texture as color attachment 0
+    // Set the albedo texture as color attachment 0
+    m_framebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_albedoTexture);
 
     // (todo) 07.3: Set the normal texture as color attachment 1
 
@@ -46,7 +47,10 @@ void GBufferRenderPass::InitTextures(int width, int height)
 
     // (todo) 07.2: Albedo: Bind the newly created texture, set the image, and the min and magfilter as nearest
     m_albedoTexture = std::make_shared<Texture2DObject>();
-
+    m_albedoTexture->Bind();
+    m_albedoTexture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
+    m_albedoTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_albedoTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
     // (todo) 07.3: Normal: Bind the newly created texture, set the image and the min and magfilter as nearest
     m_normalTexture = std::make_shared<Texture2DObject>();
