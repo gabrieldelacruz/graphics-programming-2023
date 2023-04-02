@@ -18,14 +18,16 @@ void GBufferRenderPass::InitFramebuffer()
 
     m_framebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Depth, *m_depthTexture);
 
-    // (todo) 07.2: Set the albedo texture as color attachment 0
+    // Set the albedo texture as color attachment 0
+    m_framebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_albedoTexture);
 
-    // (todo) 07.3: Set the normal texture as color attachment 1
+    // Set the normal texture as color attachment 1
+    m_framebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color1, *m_normalTexture);
 
-    // (todo) 07.5: Set the others texture as color attachment 2
+    // Set the others texture as color attachment 2
+    m_framebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color2, *m_othersTexture);
 
-
-    // (todo) 07.2: Set the draw buffers used by the framebuffer (all attachments except depth)
+    // Set the draw buffers used by the framebuffer (all attachments except depth)
     m_framebuffer.SetDrawBuffers(std::array<FramebufferObject::Attachment, 3>(
         {
             FramebufferObject::Attachment::Color0,
@@ -42,19 +44,29 @@ void GBufferRenderPass::InitTextures(int width, int height)
     m_depthTexture = std::make_shared<Texture2DObject>();
     m_depthTexture->Bind();
     m_depthTexture->SetImage(0, width, height, TextureObject::FormatDepth, TextureObject::InternalFormatDepth);
+    m_depthTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_depthTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
-
-    // (todo) 07.2: Albedo: Bind the newly created texture, set the image, and the min and magfilter as nearest
+    // Albedo: Bind the newly created texture, set the image, and the min and magfilter as nearest
     m_albedoTexture = std::make_shared<Texture2DObject>();
+    m_albedoTexture->Bind();
+    m_albedoTexture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
+    m_albedoTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_albedoTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
-
-    // (todo) 07.3: Normal: Bind the newly created texture, set the image and the min and magfilter as nearest
+    // Normal: Bind the newly created texture, set the image and the min and magfilter as nearest
     m_normalTexture = std::make_shared<Texture2DObject>();
+    m_normalTexture->Bind();
+    m_normalTexture->SetImage(0, width, height, TextureObject::FormatRG, TextureObject::InternalFormatRG16F);
+    m_normalTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_normalTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
-
-    // (todo) 07.5: Others: Bind the newly created texture, set the image and the min and magfilter as nearest
+    // Others: Bind the newly created texture, set the image and the min and magfilter as nearest
     m_othersTexture = std::make_shared<Texture2DObject>();
-
+    m_othersTexture->Bind();
+    m_othersTexture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
+    m_othersTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_othersTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
     Texture2DObject::Unbind();
 }
