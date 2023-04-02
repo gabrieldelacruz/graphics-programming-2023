@@ -16,5 +16,6 @@ void main()
 {
 	vec3 color = texture(AlbedoTexture, TexCoord).rgb;
 	vec3 normal = GetImplicitNormal(texture(NormalTexture, TexCoord).xy);
-	FragColor = vec4(normal, 1.0f);
+	vec3 position = ReconstructViewPosition(DepthTexture, TexCoord, InvProjMatrix);
+	FragColor = vec4(position, 1.0f);
 }

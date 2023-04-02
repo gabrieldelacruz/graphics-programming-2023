@@ -44,7 +44,8 @@ void GBufferRenderPass::InitTextures(int width, int height)
     m_depthTexture = std::make_shared<Texture2DObject>();
     m_depthTexture->Bind();
     m_depthTexture->SetImage(0, width, height, TextureObject::FormatDepth, TextureObject::InternalFormatDepth);
-
+    m_depthTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_depthTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
     // Albedo: Bind the newly created texture, set the image, and the min and magfilter as nearest
     m_albedoTexture = std::make_shared<Texture2DObject>();
