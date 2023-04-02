@@ -26,7 +26,7 @@ void ForwardRenderPass::Render()
     // for all drawcalls
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {
-        // (todo) 07.0: Prepare drawcall states
+        // Prepare drawcall states
         renderer.PrepareDrawcall(drawcallInfo);
 
         std::shared_ptr<const ShaderProgram> shaderProgram = drawcallInfo.material.GetShaderProgram();
@@ -36,10 +36,10 @@ void ForwardRenderPass::Render()
         unsigned int lightIndex = 0;
         while (renderer.UpdateLights(shaderProgram, lights, lightIndex))
         {
-            // (todo) 07.0: Set the renderstates
+            // Set the renderstates
             renderer.SetLightingRenderStates(first);
 
-            // (todo) 07.0: Draw
+            // Draw
             drawcallInfo.drawcall.Draw();
 
             first = false;
