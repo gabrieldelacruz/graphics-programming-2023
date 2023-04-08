@@ -79,7 +79,30 @@ void ShaderLoader::Compile(Shader& shader)
     {
         std::array<char, 512> infoLog;
         shader.GetCompilationErrors(infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog.data() << std::endl;
+
+        const char* typeName = "UNKNOWN";
+        switch (shader.GetType())
+        {
+        case Shader::ComputeShader:
+            typeName = "COMPUTE";
+            break;
+        case Shader::VertexShader:
+            typeName = "VERTEX";
+            break;
+        case Shader::TesselationControlShader:
+            typeName = "TCS";
+            break;
+        case Shader::TesselationEvaluationShader:
+            typeName = "TES";
+            break;
+        case Shader::GeometryShader:
+            typeName = "GEOMETRY";
+            break;
+        case Shader::FragmentShader:
+            typeName = "FRAGMENT";
+            break;
+        }
+        std::cout << "ERROR::SHADER::" << typeName << "::COMPILATION_FAILED\n" << infoLog.data() << std::endl;
     }
 }
 

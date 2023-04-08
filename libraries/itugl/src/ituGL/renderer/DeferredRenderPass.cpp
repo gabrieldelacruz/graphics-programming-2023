@@ -36,7 +36,7 @@ void DeferredRenderPass::Render()
         const Light* light = lightIndex <= lights.size() ? lights[lightIndex - 1] : nullptr;
         assert(first || light);
 
-        const Mesh* mesh = &m_fullscreenMesh;
+        const Mesh* mesh = &renderer.GetFullscreenMesh();
         glm::mat4 worldMatrix = fullscreenMatrix;
 
         // TODO: select different meshes depending on the type
@@ -52,13 +52,5 @@ void DeferredRenderPass::Render()
 
 void DeferredRenderPass::InitializeMeshes()
 {
-    VertexFormat vertexFormat;
-    vertexFormat.AddVertexAttribute<float>(3, VertexAttribute::Semantic::Position);
-
-    // Large triangle covering the entire screen
-    std::vector<glm::vec3> fullscreenVertices;
-    fullscreenVertices.emplace_back(-1.0f, -1.0f, 0.0f);
-    fullscreenVertices.emplace_back( 3.0f, -1.0f, 0.0f);
-    fullscreenVertices.emplace_back(-1.0f,  3.0f, 0.0f);
-    m_fullscreenMesh.AddSubmesh<glm::vec3, VertexFormat::LayoutIterator>(Drawcall::Primitive::Triangles, fullscreenVertices, vertexFormat.LayoutBegin(3, false), vertexFormat.LayoutEnd());
+    //TODO: Create meshes for spot and point lights
 }

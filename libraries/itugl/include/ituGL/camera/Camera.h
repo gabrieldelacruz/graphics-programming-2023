@@ -25,14 +25,18 @@ public:
     // Get the combined view-projection matrix. Matrix transformations can be combined by multiplying them
     inline glm::mat4 GetViewProjectionMatrix() const { return m_projMatrix * m_viewMatrix; }
 
-    // Extract the translation from the matrix
+    // Extract the translation from the view matrix
     glm::vec3 ExtractTranslation() const;
 
-    // Extract the rotation from the matrix
+    // Extract the rotation from the view matrix
     glm::vec3 ExtractRotation() const;
 
-    // Extract the scale from the matrix
+    // Extract the scale from the view matrix
     glm::vec3 ExtractScale() const;
+
+    // Extract the basis vectors from the view matrix
+    void ExtractVectors(glm::vec3& right, glm::vec3& up, glm::vec3& forward) const;
+
 
 private:
     // The view matrix (from world space to view space)

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<title>Exercise 08 - ITU Graphics Programming</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Raleway">
+<style>
+    body,header,h1,h2 {font-family:"Arial", Arial, sans-serif}
+	body {background-color:#f0f0f0; margin: 5%}
+	header {text-align:right; font-size:1.5em; margin: 0%}
+	h1 {text-align:center; font-weight:bold; margin: 2%}
+	h2 {margin: 0%}
+	hr {border: 1px solid grey}
+	p {margin-left: 1%}
+	li {margin-top: 0.5%}
+	code {margin: 0%}
+	img {margin: 1%}
+</style>
+<header>
+ITU Graphics Programming
+</header>
+<body>
+<h1>Exercise 08 - PBR scene viewer</h1>
+<hr />
+
+<h2>Learning objectives</h2>
+<p>In this exercise we will learn the basics of the implementation of a physically-based material.</p>
+<p><ul>
+  <li>How to enforce energy conservation in the shader.</li>
+  <li>The different parts of the Cook-Torrance equation for specular.</li>
+  <li>The differences between dielectric and metallic material.</li>
+</ul></p>
+<p>Remember that you can find hints in comments in the code, tagged with the label "<b>(todo)</b>" followed by the number of the exercise.</p>
+<hr />
+<h2>References</h2>
+<ul>
+	<li>LearnOpenGL - PBR lighting: <a href="https://learnopengl.com/PBR/Lighting">https://learnopengl.com/PBR/Lighting</a></li>
+	<li>Physically Based Rendering in Filament: <a href="https://google.github.io/filament/Filament.html">https://google.github.io/filament/Filament.html</a></li>
+	<li>3D model and HDR skybox library: <a href="https://polyhaven.com/">https://polyhaven.com/</a></li>
+	<li>HDR image to cubemap: <a href="https://matheowis.github.io/HDRI-to-CubeMap/">https://matheowis.github.io/HDRI-to-CubeMap/</a></li>
+</ul></p>
+<hr />
+
+<h2>Exercise 08.0 - Get familiar with the new code in the library</h2>
+<p>Before we start implementing our PBR shaders, it is important to take a quick look to the new additions to the library:</p>
+<p><ul>
+	<li>Scene graph: To simplify working with multiple objects, we added a simple scene graph. It contains scene nodes that have a transformation matrix and a bounding volume, that could be used for things like frustum culling (not implemented). The main camera, the lights and the 3D models are all added to this scene. Then, using the visitor pattern, we add them to the renderer. We also provide a small debug ImGui window to modify some parameters in real time.</li>
+	<li>Skybox: The exercise has a cubemap set as background (sky box). It was implemented as a render pass in the renderer, after all the objects have been rendered (to draw less pixels, thanks to depth test). You can get different images as skyboxes and convert them to cubemaps (see references).</li>
+	<li>Normal mapping: We added some basic code to read from a normal map texture and convert from tangent space to world space. You can see it in utils.glsl.</li>
+	<li>Camera controller: The same camera controller in exercise 5, refactored to its own class. Enable with space bar, move with WASD keys, rotate with the mouse.</li>
+</ul></p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+<hr />
+
+<h2>Exercise 08.1 - Indirect diffuse</h2>
+<p>We need to replace the current Blinn-Phong shader program with a new one.</p>
+<p>We are reading the material properties from textures that we will reuse in both. You already now the color and normal textures, but we will introduce a new one, ARM, named with the initials of the components packed in it:
+<ul>
+	<li>Ambient occlusion.</li>
+	<li>Roughness (0 = smooth surface, 1 = rough surface).</li>
+	<li>Metalness (0 = dielectric, 1 = metal).</li>
+</ul></p>
+<p>We can reuse the same vertex shader, but we need some changes to the fragment shader:</p>
+<p><ol>
+	<li>Duplicate the file <b>default.frag</b> and rename the new file to <b>default_pbr.frag</b>.</li>
+	<li>In C++, locate where we load the fragment shader, and modify the path to using your new file.</li>
+	<li>Modify also the path to the file we included with the shader model, replacing <b>blinn-phong.glsl</b> with <b>lambert-ggx.glsl</b>.</li>
+	<li>Modify default_pbr.frag to adapt it to the SurfaceData required by lambert-ggx.glsl:<ol>
+		<li>Rename data.reflectionColor to data.albedo.</li>
+		<li>Rename data.ambientReflectance to data.ambientOcclusion.</li>
+		<li>Remove the lines assigning values to data.diffuseReflectance, data.specularReflectance and data.specularExponent.</li>
+		<li>Initialize the property data.roughness to the value in the second channel of the ARM texture.</li>
+		<li>Initialize the property data.metallic to the value in the third channel of the ARM texture.</li>
+	</ol></li>
+</ol></p>
+<p>If you run the program now, you should have a very similar result as before, but with only the ambient and diffuse terms.</p>
+<p>Finally, let's replace the fixed ambient indirect diffuse lighting with something more PBR. One of the goals of PBR is to reduce the need to tweak materials when lighting conditions change. For this exercise, since we don't have any GI (global illumination), we will use the skybox to get the environment contribution.</p>
+<p>In the lighting model library, <b>lambert-ggx.glsl</b>, inside the ComputeDiffuseIndirectLighting function, replace the fixed value (0.25f) with a sample from the environment texture, in the direction of the surface normal. You can use the helper function <i>SampleEnvironment</i> for this. For the LOD level (mipmap), we use the one with less detail, passing a value of 1 to the function.</p>
+<p>You can set the light intensity to 0 to visualize only the contribution of the environment.</p>
+<p>Try to load other models included in the exercise to validate the solution.</p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+
+<h2>Exercise 08.2 - Indirect specular</h2>
+<p>In the Blinn-Phong lighting model all the indirect lighting is modelled by a single ambient value, with nothing specific for specular.</p>
+<p>In this exercise we will add some environment reflection to model the indirect specular contribution, sampling from the skybox texture.</p>
+<p>Find the ComputeSpecularIndirectLighting function in the <b>lambert-ggx.glsl</b> shader, and add a sample from the environment, using the same function as in the previous section.</p>
+<p>For the direction, this time we won't use the normal map. Instead, find the reflected view vector on the normal of the surface. You can use the <i>reflect</i> GLSL function. The view direction used in lighting goes from the surface to the camera, but in this case you have to use the inverse. Use a LOD level of 0, for now.</p>
+<p>If you did the calculation correctly, the object should look like a mirror! On thing required to improve this is to change the LOD level depending on the roughness.</p>
+<p>Smooth surfaces will have a more detailed reflection (lower LOD level), while rough surfaces will have a blurred one (higher LOD level). You can use the roughness value, already in the 0-1 range, as the LOD level. However, because the mips have not been processed properly to contain smooth values, we will push the values towards 1. Use the following expression as your LOD level: <i>pow(data.roughness, 0.25f)</i>.</p>
+<p>It should look better now, but there is still obviously too much indirect lighting. We will deal with that in the next exercise.</p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+
+<h2>Exercise 08.3 - Energy conservation (Fresnel term)</h2>
+<p>One of the principles of PBR is energy conservation. At the moment, we are adding the indirect light twice, as if it was reflected in all directions but also in the reflected direction (diffuse + specular).</p>
+<p>To select between these two, we will use the Schlick approximation of the fresnel term. Look for the equation in the slides and implement it in <b>lambert-ggx.glsl</b>.</p>
+<p>In <i>CombineIndirectLighting</i>, compute the value of the fresnel, and use it to <i>mix</i> between diffuse and specular, instead of adding them together.</p>
+<p>You can obtain the F0 value using the <i>GetReflectance</i> function. The 2 vectors that you need to provide to the function are the viewDir and the normal, instead of the halfDir.</p>
+<p>Does it look better now? Thanks to the fresnel term, the indirect will be most visible when the view direction is more perpendicular to the normal.</p>
+<p>Follow the same procedure to mix diffuse and specular in <i>CombineLighting</i>, using the same reflectance, and the viewDir and halfDir vectors this time.</p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+
+<h2>Exercise 08.4 - Diffuse (Lambert)</h2>
+<p>Now that the indirect lighting is working fine, we can move to direct lighting.</p>
+<p>For the diffuse, we saw in the lecture some more complex models, but we will keep using the simple Lambertian model, adapted to PBR:</p>
+<p><ol>
+	<li>As part of the general rendering equation, we have to move the angle of incidence out of the diffuse calculation in <i>ComputeDiffuseLighting</i>. Move it to the <i>CombineLighting</i> function, affecting the final result.</li>
+	<li>Additionally, we need to normalize the amount of light, to be energy conserving. As we explained in the lecture, we need to divide by PI to account for all the different directions.</li>
+	<li>The light of our previous scene was adjusted manually, which means that now it would be darker due to the division by PI. To solve this, we will change the light intensity of the directional light to 3, instead of one, to get a similar result.</li>
+</ol></p>	
+<p>The visual results should be very similar to the previous exercise.</p>
+<p>This is a good time to try the different models included in the exercise and see how the light is affecting them.</p>
+<hr />
+
+<h2>Exercise 08.5 - Specular (Distribution function)</h2>
+<p>Until now, we didn't have any specular in this model. This is because the equations are completely different from the Blinn-Phong model, and it was not worth it to keep anything.</p>
+<p>The first step towards our specular model is implementing the Cook-Torrance equation:
+<p><ol>
+	<li>Look at the slides and implement the Cook-Torrance equation in the <i>ComputeSpecularLighting</i> function. Skip the Fresnel term, which is already taken into account when combining with the diffuse.</li>
+	<li>For the distribution term (D), call the <i>DistributionGGX</i> function.</li>
+	<li>For the geometry term (G), call the <i>GeometrySmith</i> function.</li>
+	<li>The dot products in the denominator can be computed with <i>ClampedDot</i>, as we are doing in other parts of the exercise.</li>
+	<li>Finally, although it is not included in the original equation, add a small epsilon (0.00001f) to the denominator, to avoid infinity values when the dot products are very small.</li>
+	<li>Make sure to return a vec3 value, even though all the factors are floats.</li>
+</ol></p>
+</p>
+<p>Both implementations of the D and G terms are initially empty. In this exercise we will only implement the distribution function.</p>
+<p>Find the <i>DistributionGGX</i> function and implement it, following the slides. The alpha factor used in the equation corresponds to our roughness.</p>
+<p>You may notice some high specular values on some grazing angles. This looks incorrect, and will be solved by the geometry term in the next exercise.</p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+
+<h2>Exercise 08.6 - Specular (Geometry term)</h2>
+<p>As we discussed before, we need to implement the geometry term to account for shadowing and masking of the microsurfaces.</p>
+<p>We are using the Smith equation that divides the G2 term in two separate G1 functions (one for shadowing, one for masking). This is already implemented for you, in the function <i>GeometrySmith</i>.</p>
+<p>However, you still have to implement the equation for the G1 function for GGX, <i>GeometrySchlickGGX</i>. With the help of the slides, implement this equation and observe the results.</p>
+<p>With this, the direct specular term is finally complete. But we can also improve the quality of the render by applying this same function to the indirect specular lighting. Multiply the specular indirect in <i>ComputeSpecularIndirectLightingLighting</i> with a call to GeometrySmith function, using reflectionDir as the input direction, instead of lightDir.</p>
+<p>Our PBR model for dielectrics is finished now!</p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+
+<h2>Exercise 08.7 - Metalness</h2>
+<p>There is only one small (but important) part to finish now.</p>
+<p>Until now we have ignored metals completely, but they don't follow the same rendering model.</p>
+<p>Metalness will affect two parts of our model:</p>
+<p><ul>
+	<li>Albedo: The albedo in metals is usually black, as they don't absorb light in the same way. You can model this inside of the <i>GetAlbedo</i> function. Use the <i>mix</i> function to interpolate between the albedo and 0, depending on the metalness</li>
+	<li>Reflectance: Metals have a characteristic colored reflectance, more intense than dielectrics. In the function <i>GetReflectance</i> you can interpolate between the default value for dielectrics and the albedo for metals, in the same way we just did.</li>
+</ul></p>
+<p>Now we can say that the PBR model is finished. You should load all the different models in the exercise and look around them with the camera, observing the different materials.</p>
+<p><center>
+<img src="data:image/png;base64,"/></center></p>
+<hr />
+
+<h2>Exercise 08.X - Get creative <i>(optional)</i></h2>
+<p>The renderer we are using is too simple, and there are multiple options to improve it:</p>
+<p><ul>
+	<li>Load the same model with the default shader and the PBR shader, and compare the results, with different light settings.</li>
+	<li>Go to Polyhaven (see references) and pick a different HDRI background. Use the tool in the references section to convert it to cubemap, and load it as the skybox. How does it affect the 3D models? Does it have any effect on Blinn-phong shaders?.</li>
+	<li>Go to Polyhaven (see references) and download a new object. You will need the diffuse, normal (openGL) and ARM textures. There is no OBJ option, but you can use your prefered 3D program to export it. We used blender for the exercise. Export it to OBJ, and edit the mtl file, to do some minor changes:<ul>
+		<li>Remove the map_refl texture from all materials.</li>
+		<li>Replace the map_Ns texture with the path to the ARM texture in all materials.</li>
+		<li>Rename map_Bump to mapKn in all materials.</li>
+		<li>Copy the OBJ, MTL and texture files to the exercise, and load it in the viewer.</li>
+	<ul></li>
+</ul></p>
+<hr />
+</body>
+</html>

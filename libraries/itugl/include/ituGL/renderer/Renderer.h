@@ -3,6 +3,7 @@
 #include <ituGL/core/DeviceGL.h>
 #include <ituGL/renderer/RenderPass.h>
 #include <ituGL/geometry/Drawcall.h>
+#include <ituGL/geometry/Mesh.h>
 #include <glm/mat4x4.hpp>
 #include <vector>
 #include <unordered_map>
@@ -47,8 +48,17 @@ public:
 
     int AddRenderPass(std::unique_ptr<RenderPass> renderPass);
 
+    bool HasCamera() const;
     const Camera& GetCurrentCamera() const;
     void SetCurrentCamera(const Camera& camera);
+
+    std::span<const Light* const> GetLights() const;
+    void AddLight(const Light& light);
+
+    std::span<const DrawcallInfo> GetDrawcalls(unsigned int collectionIndex) const;
+    void AddModel(const Model& model, const glm::mat4& worldMatrix);
+
+    const Mesh& GetFullscreenMesh() const;
 
     void RegisterShaderProgram(std::shared_ptr<const ShaderProgram> shaderProgramPtr,
         const UpdateTransformsFunction& updateTransformFunction,
@@ -57,15 +67,8 @@ public:
     void UpdateTransforms(std::shared_ptr<const ShaderProgram> shaderProgramPtr, const glm::mat4& worldMatrix, bool cameraChanged = true) const;
     void UpdateTransforms(std::shared_ptr<const ShaderProgram> shaderProgramPtr, unsigned int worldMatrixIndex, bool cameraChanged = true) const;
 
+    UpdateLightsFunction GetDefaultUpdateLightsFunction(const ShaderProgram& shaderProgram);
     bool UpdateLights(std::shared_ptr<const ShaderProgram> shaderProgramPtr, std::span<const Light* const> lights, unsigned int& lightIndex) const;
-
-    std::span<const Light* const> GetLights() const;
-
-    void AddLight(const Light* light);
-
-    std::span<const DrawcallInfo> GetDrawcalls(unsigned int collectionIndex) const;
-
-    void AddModel(const Model& model, const glm::mat4& worldMatrix);
 
     void PrepareDrawcall(const DrawcallInfo& drawcallInfo);
 
@@ -75,6 +78,8 @@ public:
 
 private:
     void Reset();
+
+    void InitializeFullscreenMesh();
 
 private:
     DeviceGL& m_device;
@@ -91,6 +96,8 @@ private:
 
     std::unordered_map<std::shared_ptr<const ShaderProgram>, UpdateTransformsFunction> m_updateTransformsFunctions;
     std::unordered_map<std::shared_ptr<const ShaderProgram>, UpdateLightsFunction> m_updateLightsFunctions;
+
+    Mesh m_fullscreenMesh;
 
     std::vector<std::unique_ptr<RenderPass>> m_passes;
 };

@@ -374,7 +374,7 @@ void FirefliesApplication::UpdateFireflies()
         firefly.pointLight.SetPosition(worldMatrix[3]);
 
         m_renderer.AddModel(m_fireflyModel, firefly.worldMatrix);
-        m_renderer.AddLight(&firefly.pointLight);
+        m_renderer.AddLight(firefly.pointLight);
     }
 }
 

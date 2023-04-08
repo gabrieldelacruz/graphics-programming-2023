@@ -1,0 +1,12 @@
+
+newmtl tea_set_01
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.290000 0.290000 0.290000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd tea_set_diffuse.png
+map_Ns tea_set_arm.png
+map_Kn tea_set_normal.png

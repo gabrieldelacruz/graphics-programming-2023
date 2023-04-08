@@ -12,6 +12,7 @@ ModelLoader::ModelLoader(std::shared_ptr<Material> referenceMaterial)
     : m_referenceMaterial(referenceMaterial)
     , m_createMaterials(false)
 {
+    m_textureLoader.SetGenerateMipmap(true);
 }
 
 std::shared_ptr<Material> ModelLoader::GetReferenceMaterial() const
@@ -35,6 +36,16 @@ bool ModelLoader::GetCreateMaterials() const
 void ModelLoader::SetCreateMaterials(bool createMaterials)
 {
     m_createMaterials = createMaterials;
+}
+
+Texture2DLoader& ModelLoader::GetTexture2DLoader()
+{
+    return m_textureLoader;
+}
+
+const Texture2DLoader& ModelLoader::GetTexture2DLoader() const
+{
+    return m_textureLoader;
 }
 
 bool ModelLoader::SetMaterialAttribute(VertexAttribute::Semantic semantic, const char* attributeName)
@@ -126,10 +137,10 @@ void ModelLoader::GenerateSubmesh(Mesh& mesh, const aiMesh& meshData)
 std::shared_ptr<Material> ModelLoader::GenerateMaterial(const aiMaterial& materialData)
 {
     std::shared_ptr<Material> material = std::make_shared<Material>(*m_referenceMaterial);
+    float value;
     for (auto& materialPropertyPair : m_materialPropertyMap)
     {
         aiColor3D color;
-        float value;
         MaterialProperty materialProperty = materialPropertyPair.first;
         ShaderProgram::Location location = materialPropertyPair.second;
         switch (materialProperty)
@@ -159,23 +170,36 @@ std::shared_ptr<Material> ModelLoader::GenerateMaterial(const aiMaterial& materi
             }
             break;
         case MaterialProperty::DiffuseTexture:
-            if (materialData.GetTextureCount(aiTextureType_DIFFUSE) > 0)
-            {
-                assert(materialData.GetTextureCount(aiTextureType_DIFFUSE) == 1);
-                aiString texturePath;
-                if (materialData.GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
-                {
-                    texturePath = m_baseFolder + texturePath.C_Str();
-                    material->SetUniformValue(location, Texture2DLoader::LoadTextureShared(texturePath.C_Str(),
-                        TextureObject::FormatRGB, TextureObject::InternalFormatSRGB8));
-                }
-            }
+            LoadTexture(materialData, aiTextureType_DIFFUSE, *material, location, TextureObject::FormatRGB, TextureObject::InternalFormatSRGB8);
+            break;
+        case MaterialProperty::NormalTexture:
+            LoadTexture(materialData, aiTextureType_NORMALS, *material, location, TextureObject::FormatRGB, TextureObject::InternalFormatRGB8);
+            break;
+        case MaterialProperty::SpecularTexture:
+            LoadTexture(materialData, aiTextureType_SHININESS, *material, location, TextureObject::FormatRGB, TextureObject::InternalFormatSRGB8);
             break;
         }
     }
     return material;
 }
 
+void ModelLoader::LoadTexture(const aiMaterial& materialData, const aiTextureType& textureType, Material& material, ShaderProgram::Location location,
+    TextureObject::Format format, TextureObject::InternalFormat internalFormat) const
+{
+    if (materialData.GetTextureCount(textureType) > 0)
+    {
+        assert(materialData.GetTextureCount(textureType) == 1);
+        aiString texturePath;
+        if (materialData.GetTexture(textureType, 0, &texturePath) == aiReturn_SUCCESS)
+        {
+            texturePath = m_baseFolder + texturePath.C_Str();
+            m_textureLoader.SetFormat(format);
+            m_textureLoader.SetInternalFormat(internalFormat);
+            std::shared_ptr<Texture2DObject> texture = m_textureLoader.LoadShared(texturePath.C_Str());
+            material.SetUniformValue(location, texture);
+        }
+    }
+}
 
 std::vector<GLubyte> ModelLoader::CollectVertexData(const aiMesh& meshData, VertexFormat& vertexFormat, bool interleaved)
 {

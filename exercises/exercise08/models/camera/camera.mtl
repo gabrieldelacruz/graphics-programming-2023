@@ -1,0 +1,46 @@
+
+newmtl Camera_01_body
+Ns 100.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Camera_body_diffuse.png
+map_Ns Camera_body_arm.png
+map_Kn Camera_body_normal.png
+
+newmtl Camera_01_lens
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Camera_01_lens_body
+Ns 100.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Camera_lens_body_diffuse.png
+map_Ns Camera_lens_body_arm.png
+map_Kn Camera_lens_body_normal.png
+
+newmtl Camera_01_strap
+Ns 10.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Camera_strap_diffuse.png
+map_Ns Camera_strap_arm.png
+map_Kn Camera_strap_normal.png

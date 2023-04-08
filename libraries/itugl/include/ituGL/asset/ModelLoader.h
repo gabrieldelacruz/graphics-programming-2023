@@ -1,12 +1,15 @@
 #pragma once
 
 #include <ituGL/asset/AssetLoader.h>
+
 #include <ituGL/geometry/Model.h>
 #include <ituGL/geometry/Mesh.h>
+#include <ituGL/asset/Texture2DLoader.h>
 #include <vector>
 
 struct aiMesh;
 struct aiMaterial;
+enum aiTextureType;
 class VertexFormat;
 
 // Asset loader for Models. Contains a pointer to a reference material for loaded submeshes
@@ -25,6 +28,9 @@ public:
     bool GetCreateMaterials() const;
     void SetCreateMaterials(bool createMaterials);
 
+    Texture2DLoader& GetTexture2DLoader();
+    const Texture2DLoader& GetTexture2DLoader() const;
+
     // Load the model from the path
     Model Load(const char* path) override;
 
@@ -40,6 +46,10 @@ private:
 
     // Generate a material from the loaded material data
     std::shared_ptr<Material> GenerateMaterial(const aiMaterial& materialData);
+
+    // Load a texture of the specific type in the location
+    void LoadTexture(const aiMaterial& materialData, const aiTextureType& textureType, Material& material, ShaderProgram::Location location,
+        TextureObject::Format format, TextureObject::InternalFormat internalFormat) const;
 
     // Build the vertex data from the mesh data
     static std::vector<GLubyte> CollectVertexData(const aiMesh& meshData, VertexFormat& vertexFormat, bool interleaved);
@@ -72,6 +82,9 @@ private:
 
     // Should create new materials for each submesh or use the reference material
     bool m_createMaterials;
+
+    // Texture loader to cache already loaded shared textures
+    mutable Texture2DLoader m_textureLoader;
 };
 
 enum class ModelLoader::MaterialProperty
@@ -81,4 +94,6 @@ enum class ModelLoader::MaterialProperty
     SpecularColor,
     SpecularExponent,
     DiffuseTexture,
+    NormalTexture,
+    SpecularTexture,
 };

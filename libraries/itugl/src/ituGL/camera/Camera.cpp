@@ -58,3 +58,13 @@ glm::vec3 Camera::ExtractScale() const
     // Should return (1, 1, 1)
     return glm::vec3(m_viewMatrix[0].length(), m_viewMatrix[1].length(), m_viewMatrix[2].length());
 }
+
+void Camera::ExtractVectors(glm::vec3& right, glm::vec3& up, glm::vec3& forward) const
+{
+    // Keep only 3x3 rotation part of the matrix
+    glm::mat3 transposed = glm::transpose(m_viewMatrix);
+
+    right = transposed[0];
+    up = transposed[1];
+    forward = transposed[2];
+}

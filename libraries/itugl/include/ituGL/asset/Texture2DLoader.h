@@ -15,7 +15,8 @@ public:
 
     // Helper to easily load a shared texture
     static std::shared_ptr<Texture2DObject> LoadTextureShared(const char* path,
-        TextureObject::Format format, TextureObject::InternalFormat internalFormat, bool generateMipmap = true);
+        TextureObject::Format format, TextureObject::InternalFormat internalFormat,
+        bool generateMipmap = true, bool flipVertical = false);
 
     inline bool GetFlipVertical() const { return m_flipVertical; }
     inline void SetFlipVertical(bool flipVertical) { m_flipVertical = flipVertical; }
