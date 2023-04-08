@@ -11,6 +11,10 @@ SceneNode::SceneNode(const std::string& name, std::shared_ptr<Transform> transfo
 {
 }
 
+SceneNode::~SceneNode()
+{
+}
+
 const std::string& SceneNode::GetName() const
 {
     return m_name;

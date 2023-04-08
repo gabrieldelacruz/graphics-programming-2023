@@ -9,7 +9,6 @@
 
 struct aiMesh;
 struct aiMaterial;
-enum aiTextureType;
 class VertexFormat;
 
 // Asset loader for Models. Contains a pointer to a reference material for loaded submeshes
@@ -48,7 +47,7 @@ private:
     std::shared_ptr<Material> GenerateMaterial(const aiMaterial& materialData);
 
     // Load a texture of the specific type in the location
-    void LoadTexture(const aiMaterial& materialData, const aiTextureType& textureType, Material& material, ShaderProgram::Location location,
+    void LoadTexture(const aiMaterial& materialData, int textureType, Material& material, ShaderProgram::Location location,
         TextureObject::Format format, TextureObject::InternalFormat internalFormat) const;
 
     // Build the vertex data from the mesh data

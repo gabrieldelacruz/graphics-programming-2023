@@ -14,6 +14,8 @@ public:
     SceneNode(const std::string& name);
     SceneNode(const std::string& name, std::shared_ptr<Transform> transform);
 
+    virtual ~SceneNode();
+
     const std::string& GetName() const;
     void Rename(const std::string& name);
 

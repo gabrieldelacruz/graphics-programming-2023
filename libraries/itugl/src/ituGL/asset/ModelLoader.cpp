@@ -183,9 +183,10 @@ std::shared_ptr<Material> ModelLoader::GenerateMaterial(const aiMaterial& materi
     return material;
 }
 
-void ModelLoader::LoadTexture(const aiMaterial& materialData, const aiTextureType& textureType, Material& material, ShaderProgram::Location location,
+void ModelLoader::LoadTexture(const aiMaterial& materialData, int textureTypeValue, Material& material, ShaderProgram::Location location,
     TextureObject::Format format, TextureObject::InternalFormat internalFormat) const
 {
+    aiTextureType textureType = static_cast<aiTextureType>(textureTypeValue);
     if (materialData.GetTextureCount(textureType) > 0)
     {
         assert(materialData.GetTextureCount(textureType) == 1);

@@ -4,6 +4,10 @@ Light::Light() : m_color(1.0f), m_intensity(1.0f)
 {
 }
 
+Light::~Light()
+{
+}
+
 glm::vec3 Light::GetPosition() const
 {
     return GetPosition(glm::vec3(0));
