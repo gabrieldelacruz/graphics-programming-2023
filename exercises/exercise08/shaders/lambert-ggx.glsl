@@ -39,8 +39,7 @@ vec3 GetReflectance(SurfaceData data)
 // Schlick simplification of the Fresnel term
 vec3 FresnelSchlick(vec3 f0, vec3 viewDir, vec3 halfDir)
 {
-	// (todo) 08.3: Implement the equation
-   return vec3(0.0f);
+	return f0 + (vec3(1.0f) - f0) * pow(1.0f - ClampedDot(viewDir, halfDir), 5.0f);
 }
 
 // GGX equation for distribution function
@@ -104,12 +103,11 @@ vec3 ComputeSpecularIndirectLighting(SurfaceData data, vec3 viewDir)
 
 vec3 CombineIndirectLighting(vec3 diffuse, vec3 specular, SurfaceData data, vec3 viewDir)
 {
-	// (todo) 08.3: Compute the Fresnel term between the normal and the view direction
+	// Compute the Fresnel term between the normal and the view direction
+	vec3 fresnel = FresnelSchlick(GetReflectance(data), viewDir, data.normal);
 
-
-	// (todo) 08.3: Linearly interpolate between the diffuse and specular term, using the fresnel value
-
-	return (diffuse + specular) * data.ambientOcclusion;
+	// Linearly interpolate between the diffuse and specular term, using the fresnel value
+	return mix(diffuse, specular, fresnel) * data.ambientOcclusion;
 }
 
 vec3 ComputeDiffuseLighting(SurfaceData data, vec3 lightDir)
@@ -128,13 +126,14 @@ vec3 ComputeSpecularLighting(SurfaceData data, vec3 lightDir, vec3 viewDir)
 
 vec3 CombineLighting(vec3 diffuse, vec3 specular, SurfaceData data, vec3 lightDir, vec3 viewDir)
 {
-	// (todo) 08.3: Compute the Fresnel term between the half direction and the view direction
+	// Compute the Fresnel term between the half direction and the view direction
+	vec3 halfDir = normalize(viewDir + lightDir);
+	vec3 fresnel = FresnelSchlick(GetReflectance(data), viewDir, halfDir);
 
-
-	// (todo) 08.3: Linearly interpolate between the diffuse and specular term, using the fresnel value
-
+	// Linearly interpolate between the diffuse and specular term, using the fresnel value
+	vec3 lighting = mix(diffuse, specular, fresnel);
 
 	// (todo) 08.4: Move the incidence factor to affect the combined light value
 
-	return diffuse + specular;
+	return lighting;
 }
