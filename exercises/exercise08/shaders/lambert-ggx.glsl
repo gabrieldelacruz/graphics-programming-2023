@@ -83,8 +83,8 @@ vec3 SampleEnvironment(vec3 direction, float lodLevel)
 
 vec3 ComputeDiffuseIndirectLighting(SurfaceData data)
 {
-	// (todo) 08.1: Sample the environment map at its max LOD level and multiply with the albedo
-	return GetAlbedo(data) * 0.25f;
+	// Sample the environment map at its max LOD level and multiply with the albedo
+	return SampleEnvironment(data.normal, 1.0f) * GetAlbedo(data);
 }
 
 vec3 ComputeSpecularIndirectLighting(SurfaceData data, vec3 viewDir)

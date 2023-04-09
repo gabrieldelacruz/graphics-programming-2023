@@ -119,9 +119,9 @@ void SceneViewerApplication::InitializeMaterial()
     std::vector<const char*> fragmentShaderPaths;
     fragmentShaderPaths.push_back("shaders/version330.glsl");
     fragmentShaderPaths.push_back("shaders/utils.glsl");
-    fragmentShaderPaths.push_back("shaders/blinn-phong.glsl");
+    fragmentShaderPaths.push_back("shaders/lambert-ggx.glsl");
     fragmentShaderPaths.push_back("shaders/lighting.glsl");
-    fragmentShaderPaths.push_back("shaders/default.frag");
+    fragmentShaderPaths.push_back("shaders/default_pbr.frag");
     Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths);
 
     std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
