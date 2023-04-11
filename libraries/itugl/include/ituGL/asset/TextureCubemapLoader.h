@@ -16,16 +16,9 @@ public:
     // Helper to easily load a shared texture
     static std::shared_ptr<TextureCubemapObject> LoadTextureShared(const char* path,
         TextureObject::Format format, TextureObject::InternalFormat internalFormat,
-        bool generateMipmap = true, bool flipVertical = false);
-
-    inline bool GetFlipVertical() const { return m_flipVertical; }
-    inline void SetFlipVertical(bool flipVertical) { m_flipVertical = flipVertical; }
+        bool generateMipmap = true);
 
 private:
-    void LoadFace(TextureCubemapObject& textureCubemap, TextureCubemapObject::Face face, std::span<const unsigned char> dataSrc, std::span<unsigned char> dataDst, int x, int y, int side);
-
-private:
-    // If true, the texture will be flipped vertically on load
-    // This option exists because some systems define the vertical origin as "up", and others as "down"
-    bool m_flipVertical;
+    void LoadFace(TextureCubemapObject& textureCubemap, TextureCubemapObject::Face face, std::span<const std::byte> dataSrc, std::span<std::byte> dataDst, int x, int y, int side, Data::Type dataType);
 };
+

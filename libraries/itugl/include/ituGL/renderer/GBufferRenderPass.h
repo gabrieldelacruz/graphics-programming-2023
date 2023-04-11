@@ -2,9 +2,7 @@
 
 #include <ituGL/renderer/RenderPass.h>
 
-#include <ituGL/texture/Texture2DObject.h>
-#include <ituGL/texture/FramebufferObject.h>
-#include <memory>
+class Texture2DObject;
 
 class GBufferRenderPass : public RenderPass
 {
@@ -29,6 +27,4 @@ private:
     std::shared_ptr<Texture2DObject> m_albedoTexture;
     std::shared_ptr<Texture2DObject> m_normalTexture;
     std::shared_ptr<Texture2DObject> m_othersTexture;
-
-    FramebufferObject m_framebuffer;
 };

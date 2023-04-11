@@ -168,6 +168,7 @@ bool TextureObject::IsValidFormat(Format format, InternalFormat internalFormat)
         return false;
     }
 }
+#endif
 
 int TextureObject::GetComponentCount(Format format)
 {
@@ -249,4 +250,3 @@ int TextureObject::GetDataComponentCount(InternalFormat internalFormat)
         return 0;
     }
 }
-#endif

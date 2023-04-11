@@ -7,12 +7,18 @@
 #include <ituGL/geometry/Mesh.h>
 #include <ituGL/geometry/Model.h>
 #include <ituGL/lighting/Light.h>
+#include <ituGL/texture/FramebufferObject.h>
 #include <ituGL/renderer/RenderPass.h>
 #include <span>
 #include <algorithm>
 #include <cassert>
 
-Renderer::Renderer(DeviceGL& device) : m_device(device), m_currentCamera(nullptr), m_drawcallCollections(1)
+Renderer::Renderer(DeviceGL& device)
+    : m_device(device)
+    , m_currentCamera(nullptr)
+    , m_defaultFramebuffer(FramebufferObject::GetDefault())
+    , m_currentFramebuffer(m_defaultFramebuffer)
+    , m_drawcallCollections(1)
 {
     InitializeFullscreenMesh();
 
@@ -38,6 +44,26 @@ void Renderer::SetCurrentCamera(const Camera& camera)
     m_currentCamera = &camera;
 }
 
+std::shared_ptr<const FramebufferObject> Renderer::GetDefaultFramebuffer() const
+{
+    return m_defaultFramebuffer;
+}
+
+std::shared_ptr<const FramebufferObject> Renderer::GetCurrentFramebuffer() const
+{
+    return m_currentFramebuffer;
+}
+
+void Renderer::SetCurrentFramebuffer(std::shared_ptr<const FramebufferObject> framebuffer)
+{
+    // if nullptr, keep using current. To unbind, use an empty framebuffer
+    if (framebuffer && framebuffer != m_currentFramebuffer)
+    {
+        m_currentFramebuffer = framebuffer;
+        m_currentFramebuffer->Bind();
+    }
+}
+
 const Mesh& Renderer::GetFullscreenMesh() const
 {
     return m_fullscreenMesh;
@@ -49,6 +75,7 @@ void Renderer::Render()
 
     for (auto& pass : m_passes)
     {
+        SetCurrentFramebuffer(pass->GetTargetFramebuffer());
         pass->Render();
     }
 
@@ -175,7 +202,7 @@ void Renderer::AddModel(const Model& model, const glm::mat4& worldMatrix)
     m_worldMatrices.push_back(worldMatrix);
 
     const Mesh& mesh = model.GetMesh();
-    for (int submeshIndex = 0; submeshIndex < mesh.GetSubmeshCount(); ++submeshIndex)
+    for (unsigned int submeshIndex = 0; submeshIndex < mesh.GetSubmeshCount(); ++submeshIndex)
     {
         DrawcallInfo drawcallInfo(model.GetMaterial(submeshIndex), worldMatrixIndex,
             mesh.GetSubmeshVertexArray(submeshIndex), mesh.GetSubmeshDrawcall(submeshIndex));

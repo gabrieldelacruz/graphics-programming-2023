@@ -8,8 +8,8 @@
 #include <ituGL/texture/Texture2DObject.h>
 #include <glm/gtx/transform.hpp>
 
-DeferredRenderPass::DeferredRenderPass(std::shared_ptr<Material> material)
-    : m_material(material)
+DeferredRenderPass::DeferredRenderPass(std::shared_ptr<Material> material, std::shared_ptr<const FramebufferObject> framebuffer)
+    : RenderPass(framebuffer), m_material(material)
 {
     InitializeMeshes();
 }
@@ -17,6 +17,9 @@ DeferredRenderPass::DeferredRenderPass(std::shared_ptr<Material> material)
 void DeferredRenderPass::Render()
 {
     Renderer& renderer = GetRenderer();
+
+    //TODO: temp hack
+    renderer.GetDevice().DisableFeature(GL_DEPTH_TEST);
 
     const Camera& camera = renderer.GetCurrentCamera();
 
@@ -48,6 +51,9 @@ void DeferredRenderPass::Render()
         mesh->DrawSubmesh(0);
         first = false;
     }
+
+    //TODO: temp hack
+    renderer.GetDevice().EnableFeature(GL_DEPTH_TEST);
 }
 
 void DeferredRenderPass::InitializeMeshes()

@@ -123,6 +123,7 @@ bool ShaderUniformCollection::IsDataUniform(GLenum glType, Data::Type& type, Uni
     // Type
     switch (glType)
     {
+    case GL_BOOL:
     case GL_INT:
     case GL_INT_VEC2:
     case GL_INT_VEC3:
@@ -163,6 +164,7 @@ bool ShaderUniformCollection::IsDataUniform(GLenum glType, Data::Type& type, Uni
     // UniformDimension
     switch (glType)
     {
+    case GL_BOOL:
     case GL_INT:
     case GL_UNSIGNED_INT:
     case GL_FLOAT:

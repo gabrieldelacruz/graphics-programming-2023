@@ -4,13 +4,11 @@
 #include <stb_image.h>
 
 TextureCubemapLoader::TextureCubemapLoader()
-    : m_flipVertical(false)
 {
 }
 
 TextureCubemapLoader::TextureCubemapLoader(TextureObject::Format format, TextureObject::InternalFormat internalFormat)
     : TextureLoader(format, internalFormat)
-    , m_flipVertical(false)
 {
 }
 
@@ -18,17 +16,13 @@ TextureCubemapObject TextureCubemapLoader::Load(const char* path)
 {
     TextureCubemapObject textureCubemap;
 
-    // Set flip vertical on load if needed
-    stbi_set_flip_vertically_on_load(m_flipVertical ? 1 : 0);
-
-    // Load texture data using stbimage library
-    int componentCount = TextureObject::GetComponentCount(m_format);
-    int width, height, originalComponentCount;
-    unsigned char* data = stbi_load(path, &width, &height, &originalComponentCount, componentCount);
+    int width, height;
+    Data::Type dataType;
+    std::span<const std::byte> data = LoadTexture2DData(path, width, height, dataType);
 
     // If data was loaded, copy it to the texture object
-    assert(data);
-    if (data)
+    assert(!data.empty());
+    if (!data.empty())
     {
         assert(width % 4 == 0);
         assert(height % 3 == 0);
@@ -38,14 +32,14 @@ TextureCubemapObject TextureCubemapLoader::Load(const char* path)
 
         textureCubemap.Bind();
 
-        std::vector<unsigned char> faceData(side * side * componentCount);
-        std::span<const unsigned char> dataSpan(data, width * height * componentCount);
-        LoadFace(textureCubemap, TextureCubemapObject::Face::Left,   dataSpan, faceData, 0, 1, side);
-        LoadFace(textureCubemap, TextureCubemapObject::Face::Right,  dataSpan, faceData, 2, 1, side);
-        LoadFace(textureCubemap, TextureCubemapObject::Face::Bottom, dataSpan, faceData, 1, 2, side);
-        LoadFace(textureCubemap, TextureCubemapObject::Face::Top,    dataSpan, faceData, 1, 0, side);
-        LoadFace(textureCubemap, TextureCubemapObject::Face::Front,  dataSpan, faceData, 3, 1, side);
-        LoadFace(textureCubemap, TextureCubemapObject::Face::Back,   dataSpan, faceData, 1, 1, side);
+        int pixelSize = TextureObject::GetComponentCount(m_format) * Data::GetTypeSize(dataType);
+        std::vector<std::byte> faceData(side * side * pixelSize);
+        LoadFace(textureCubemap, TextureCubemapObject::Face::Left,   data, faceData, 0, 1, side, dataType);
+        LoadFace(textureCubemap, TextureCubemapObject::Face::Right,  data, faceData, 2, 1, side, dataType);
+        LoadFace(textureCubemap, TextureCubemapObject::Face::Bottom, data, faceData, 1, 2, side, dataType);
+        LoadFace(textureCubemap, TextureCubemapObject::Face::Top,    data, faceData, 1, 0, side, dataType);
+        LoadFace(textureCubemap, TextureCubemapObject::Face::Front,  data, faceData, 3, 1, side, dataType);
+        LoadFace(textureCubemap, TextureCubemapObject::Face::Back,   data, faceData, 1, 1, side, dataType);
 
         textureCubemap.SetParameter(TextureObject::ParameterEnum::MinFilter, GL_LINEAR);
         textureCubemap.SetParameter(TextureObject::ParameterEnum::MagFilter, GL_LINEAR);
@@ -58,7 +52,7 @@ TextureCubemapObject TextureCubemapLoader::Load(const char* path)
 
             // Adjust mip levels
             textureCubemap.SetParameter(TextureObject::ParameterFloat::MinLod, 0.0f);
-            float maxLod = 1.0f + std::floor(std::log2(std::max(width, height)));
+            float maxLod = 1.0f + std::floorf(std::log2f(static_cast<float>(std::max(width, height))));
             textureCubemap.SetParameter(TextureObject::ParameterFloat::MaxLod, maxLod);
         }
 
@@ -70,33 +64,34 @@ TextureCubemapObject TextureCubemapLoader::Load(const char* path)
         textureCubemap.Unbind();
 
         // Free loaded data (not needed anymore)
-        stbi_image_free(data);
+        FreeTexture2DData(data);
     }
     return textureCubemap;
 }
 
 std::shared_ptr<TextureCubemapObject> TextureCubemapLoader::LoadTextureShared(const char* path,
-    TextureObject::Format format, TextureObject::InternalFormat internalFormat, bool generateMipmap, bool flipVertical)
+    TextureObject::Format format, TextureObject::InternalFormat internalFormat, bool generateMipmap)
 {
     TextureCubemapLoader loader(format, internalFormat);
     loader.SetGenerateMipmap(generateMipmap);
-    loader.SetFlipVertical(flipVertical);
     return loader.LoadShared(path);
 }
 
-void TextureCubemapLoader::LoadFace(TextureCubemapObject& textureCubemap, TextureCubemapObject::Face face, std::span<const unsigned char> dataSrc, std::span<unsigned char> dataDst, int x, int y, int side)
+void TextureCubemapLoader::LoadFace(TextureCubemapObject& textureCubemap, TextureCubemapObject::Face face, std::span<const std::byte> dataSrc, std::span<std::byte> dataDst, int x, int y, int side, Data::Type dataType)
 {
-    int componentCount = TextureObject::GetComponentCount(m_format);
-    int rowSize = side * componentCount;
+    int pixelSize = TextureObject::GetComponentCount(m_format) * Data::GetTypeSize(dataType);
+    int rowSize = side * pixelSize;
     int stride = 4 * rowSize;
     int srcOffset = y * side * stride + x * rowSize;
     int dstOffset = 0;
     for (int i = 0; i < side; ++i)
     {
+        assert(srcOffset + rowSize <= dataSrc.size());
+        assert(dstOffset + rowSize <= dataDst.size());
         memcpy(&dataDst[dstOffset], &dataSrc[srcOffset], rowSize);
         srcOffset += stride;
         dstOffset += rowSize;
     }
 
-    textureCubemap.SetImage<unsigned char>(0, face, side, m_format, m_internalFormat, dataDst);
+    textureCubemap.SetImage<std::byte>(0, face, side, m_format, m_internalFormat, dataDst, dataType);
 }

@@ -12,7 +12,7 @@ class Material;
 class DeferredRenderPass: public RenderPass
 {
 public:
-    DeferredRenderPass(std::shared_ptr<Material> material);
+    DeferredRenderPass(std::shared_ptr<Material> material, std::shared_ptr<const FramebufferObject> targetFramebuffer = nullptr);
 
     void Render() override;
 

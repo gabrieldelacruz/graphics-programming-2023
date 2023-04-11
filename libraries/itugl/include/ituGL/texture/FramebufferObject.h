@@ -2,6 +2,7 @@
 
 #include <ituGL/core/Object.h>
 #include <span>
+#include <memory>
 
 class Texture2DObject;
 
@@ -30,8 +31,13 @@ public:
 
     void SetDrawBuffers(std::span<const Attachment> attachments);
 
-private:
+    static std::shared_ptr<const FramebufferObject> GetDefault();
 
+private:
+    FramebufferObject(Handle handle);
+
+private:
+    static std::shared_ptr<const FramebufferObject> s_defaultFramebuffer;
 };
 
 enum class FramebufferObject::Target : GLenum

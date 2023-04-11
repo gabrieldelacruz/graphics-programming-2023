@@ -1,7 +1,6 @@
 #include <ituGL/asset/Texture2DLoader.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <cassert>
 
 Texture2DLoader::Texture2DLoader()
     : m_flipVertical(false)
@@ -18,21 +17,17 @@ Texture2DObject Texture2DLoader::Load(const char* path)
 {
     Texture2DObject texture2D;
 
-    // Set flip vertical on load if needed
-    stbi_set_flip_vertically_on_load(m_flipVertical ? 1 : 0);
-
     // Load texture data using stbimage library
-    int componentCount = TextureObject::GetComponentCount(m_format);
-    int width, height, originalComponentCount;
-    unsigned char* data = stbi_load(path, &width, &height, &originalComponentCount, componentCount);
+    int width, height;
+    Data::Type dataType;
+    std::span<const std::byte> data = LoadTexture2DData(path, width, height, dataType, m_flipVertical);
 
     // If data was loaded, copy it to the texture object
-    assert(data);
-    if (data)
+    assert(!data.empty());
+    if (!data.empty())
     {
         texture2D.Bind();
-        int dataSize = width * height * componentCount;
-        texture2D.SetImage<unsigned char>(0, width, height, m_format, m_internalFormat, std::span(data, dataSize));
+        texture2D.SetImage<std::byte>(0, width, height, m_format, m_internalFormat, data, dataType);
 
         texture2D.SetParameter(TextureObject::ParameterEnum::MinFilter, GL_LINEAR);
         texture2D.SetParameter(TextureObject::ParameterEnum::MagFilter, GL_LINEAR);
@@ -45,14 +40,14 @@ Texture2DObject Texture2DLoader::Load(const char* path)
 
             // Adjust mip levels
             texture2D.SetParameter(TextureObject::ParameterFloat::MinLod, 0.0f);
-            float maxLod = 1.0f + std::floor(std::log2(std::max(width, height)));
+            float maxLod = 1.0f + std::floorf(std::log2f(static_cast<float>(std::max(width, height))));
             texture2D.SetParameter(TextureObject::ParameterFloat::MaxLod, maxLod);
         }
 
         texture2D.Unbind();
 
         // Free loaded data (not needed anymore)
-        stbi_image_free(data);
+        FreeTexture2DData(data);
     }
     return texture2D;
 }

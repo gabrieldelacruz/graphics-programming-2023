@@ -18,6 +18,7 @@ class Material;
 class VertexArrayObject;
 class Drawcall;
 class Model;
+class FramebufferObject;
 
 class Renderer
 {
@@ -51,6 +52,10 @@ public:
     bool HasCamera() const;
     const Camera& GetCurrentCamera() const;
     void SetCurrentCamera(const Camera& camera);
+
+    std::shared_ptr<const FramebufferObject> GetDefaultFramebuffer() const;
+    std::shared_ptr<const FramebufferObject> GetCurrentFramebuffer() const;
+    void SetCurrentFramebuffer(std::shared_ptr<const FramebufferObject> framebuffer);
 
     std::span<const Light* const> GetLights() const;
     void AddLight(const Light& light);
@@ -87,6 +92,9 @@ private:
     const Camera *m_currentCamera;
 
     std::shared_ptr<const Material> m_currentMaterial;
+
+    std::shared_ptr<const FramebufferObject> m_defaultFramebuffer;
+    std::shared_ptr<const FramebufferObject> m_currentFramebuffer;
 
     std::vector<const Light*> m_lights;
 
