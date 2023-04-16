@@ -6,12 +6,15 @@ out vec4 FragColor;
 
 //Uniforms
 uniform sampler2D SourceTexture;
+
 uniform float Exposure;
+
 uniform float Contrast;
 uniform float HueShift;
 uniform float Saturation;
 uniform vec3 ColorFilter;
 
+uniform sampler2D BloomTexture;
 
 vec3 AdjustContrast(vec3 color)
 {
@@ -43,6 +46,9 @@ void main()
 {
 	// Read from the HDR framebuffer
 	vec3 hdrColor = texture(SourceTexture, TexCoord).rgb;
+
+	// Add bloom
+	hdrColor += texture(BloomTexture, TexCoord).rgb;
 
 	// Apply exposure
 	vec3 color = vec3(1.0f) - exp(-hdrColor * Exposure);
