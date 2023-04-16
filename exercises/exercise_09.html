@@ -119,7 +119,7 @@ ITU Graphics Programming
 </ol></p>
 <p>As you probably noticed, the new passes are still not connected to the other passes:</p>
 <p><ol>
-	<li>For the compose pass, use the second of the new textures as input, instead of m_sceneTexture.</li>
+	<li>For the compose pass, use the first of the new textures as input, instead of m_sceneTexture.</li>
 	<li>We can't do the same for the deferred pass, because it needs a depth attachment. Instead, create a new copy pass (like the one initially had) to copy m_sceneTexture to the first of the new textures.</li>
 </ol></p>
 <p>If you run the application now, everything should be blurred. If it didn't work, review all the steps.</p>

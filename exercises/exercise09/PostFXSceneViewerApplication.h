@@ -7,6 +7,7 @@
 #include <ituGL/renderer/Renderer.h>
 #include <ituGL/camera/CameraController.h>
 #include <ituGL/utils/DearImGui.h>
+#include <array>
 
 class Texture2DObject;
 class TextureCubemapObject;
@@ -57,19 +58,22 @@ private:
     std::shared_ptr<Material> m_defaultMaterial;
     std::shared_ptr<Material> m_deferredMaterial;
     std::shared_ptr<Material> m_composeMaterial;
-    // (todo) 09.4: Add a new material for bloom
+    std::shared_ptr<Material> m_bloomMaterial;
 
     // Framebuffers
     std::shared_ptr<FramebufferObject> m_sceneFramebuffer;
     std::shared_ptr<Texture2DObject> m_depthTexture;
     std::shared_ptr<Texture2DObject> m_sceneTexture;
-    // (todo) 09.3: Declare an array of 2 temporary framebuffers
-
-    // (todo) 09.3: Declare an array of 2 temporary textures
-
+    std::array<std::shared_ptr<FramebufferObject>, 2> m_tempFramebuffers;
+    std::array<std::shared_ptr<Texture2DObject>, 2> m_tempTextures;
 
     // Configuration values
     float m_exposure;
-    // (todo) 09.X: Declare new configuration values
-
+    float m_contrast;
+    float m_hueShift;
+    float m_saturation;
+    glm::vec3 m_colorFilter;
+    int m_blurIterations;
+    glm::vec2 m_bloomRange;
+    float m_bloomIntensity;
 };
