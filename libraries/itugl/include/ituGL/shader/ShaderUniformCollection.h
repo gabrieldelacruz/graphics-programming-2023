@@ -61,6 +61,12 @@ public:
     template<typename T>
     void SetUniformValues(ShaderProgram::Location location, std::span<const T> value);
 
+    // Get the pointer to the uniform data
+    template<typename T>
+    T* GetDataUniformPointer(const char* name);
+    template<typename T>
+    T* GetDataUniformPointer(ShaderProgram::Location location);
+
     // Set all the properties to the shader. Requires the shader program to be in use
     void SetUniforms() const;
 
@@ -360,6 +366,22 @@ void ShaderUniformCollection::GetDataValues(ShaderProgram::Location location, st
     const std::vector<T>& allValues = GetDataValues<T>();
     auto dataPtr = reinterpret_cast<const glm::mat<C, R, T>*>(&allValues[uniform.index]);
     values = std::span(dataPtr, uniform.count);
+}
+
+template<typename T>
+T* ShaderUniformCollection::GetDataUniformPointer(const char* name)
+{
+    ShaderProgram::Location location = GetUniformLocation(name);
+    assert(location >= 0);
+    return GetDataUniformPointer<T>(location);
+}
+
+template<typename T>
+T* ShaderUniformCollection::GetDataUniformPointer(ShaderProgram::Location location)
+{
+    const DataUniform& uniform = GetDataUniform(location);
+    std::vector<T>& allValues = GetDataValues<T>();
+    return &allValues[uniform.index];
 }
 
 template<typename T>

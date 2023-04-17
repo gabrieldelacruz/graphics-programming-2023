@@ -20,8 +20,5 @@ public:
     void VisitModel(SceneModel& sceneModel) override;
 
 private:
-    void VisitTransform(Transform& transform);
-
-private:
     Renderer& m_renderer;
 };
