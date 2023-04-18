@@ -5,6 +5,11 @@ uniform vec3 LightPosition;
 uniform vec3 LightDirection;
 uniform vec4 LightAttenuation;
 
+uniform bool LightShadowEnabled;
+uniform sampler2DShadow LightShadowMap;
+uniform mat4 LightShadowMatrix;
+uniform float LightShadowBias;
+
 float ComputeDistanceAttenuation(vec3 position)
 {
 	// Compute distance attenuation, reading the range from LightAttenuation.x (fade start) and LightAttenuation.y (fade end)
@@ -31,6 +36,29 @@ float ComputeAttenuation(vec3 position, vec3 lightDir)
 	}
 	return attenuation;
 }
+ 
+float ComputeShadow(vec3 position)
+{
+	float shadow = 1.0f;
+	if (LightShadowEnabled)
+	{
+		// Transform position to light space
+		vec4 lightSpacePosition = LightShadowMatrix * vec4(position, 1.0f);
+
+		// Homogeneous coordinates
+		lightSpacePosition /= lightSpacePosition.w;
+
+		// Transform to texture range (0-1)
+		lightSpacePosition = lightSpacePosition * 0.5f + 0.5f;
+
+		// Depth bias
+		lightSpacePosition.z *= (1.0f - LightShadowBias);
+
+		// Sample shadow texture
+		shadow = texture(LightShadowMap, lightSpacePosition.xyz);
+	}
+	return shadow;
+}
 
 vec3 ComputeLightDirection(vec3 position)
 {
@@ -46,7 +74,10 @@ vec3 ComputeLight(SurfaceData data, vec3 viewDir, vec3 position)
 	vec3 light = CombineLighting(diffuse, specular, data, lightDir, viewDir);
 
 	float attenuation = ComputeAttenuation(position, lightDir);
-	return light * LightColor * attenuation;
+	
+	float shadow = ComputeShadow(position);
+
+	return light * LightColor * attenuation * shadow;
 }
 
 vec3 ComputeLighting(vec3 position, SurfaceData data, vec3 viewDir, bool indirect)

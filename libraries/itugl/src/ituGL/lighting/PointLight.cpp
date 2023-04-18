@@ -33,3 +33,9 @@ void PointLight::SetDistanceAttenuation(glm::vec2 attenuation)
 {
     m_attenuation = attenuation;
 }
+
+bool PointLight::CreateShadowMap(glm::ivec2 resolution)
+{
+    assert(!m_shadowMap);
+    return false;
+}

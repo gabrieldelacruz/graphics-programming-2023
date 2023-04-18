@@ -12,6 +12,7 @@
 class Texture2DObject;
 class TextureCubemapObject;
 class Material;
+class Light;
 
 class PostFXSceneViewerApplication : public Application
 {
@@ -54,9 +55,13 @@ private:
     // Skybox texture
     std::shared_ptr<TextureCubemapObject> m_skyboxTexture;
 
+    // Main light
+    std::shared_ptr<Light> m_mainLight;
+
     // Materials
     std::shared_ptr<Material> m_defaultMaterial;
     std::shared_ptr<Material> m_deferredMaterial;
+    std::shared_ptr<Material> m_shadowMapMaterial;
     std::shared_ptr<Material> m_composeMaterial;
     std::shared_ptr<Material> m_bloomMaterial;
 

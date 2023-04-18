@@ -38,6 +38,17 @@ void DeviceGL::SetCurrentWindow(Window& window)
     }
 }
 
+// Get the dimensions of the viewport
+void DeviceGL::GetViewport(GLint& x, GLint& y, GLsizei& width, GLsizei& height) const
+{
+    int values[4];
+    glGetIntegerv(GL_VIEWPORT, values);
+    x = values[0];
+    y = values[1];
+    width = values[2];
+    height = values[3];
+}
+
 // Set the dimensions of the viewport
 void DeviceGL::SetViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {

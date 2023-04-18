@@ -1,0 +1,4 @@
+// Empty
+void main()
+{
+}

@@ -18,6 +18,7 @@ Material::Material(std::shared_ptr<ShaderProgram> shaderProgram, const NameSet& 
     , m_stencilDepthPass{ StencilOperation::Keep, StencilOperation::Keep }
     , m_blendEquations{ BlendEquation::None }
     , m_blendParams{ BlendParam::One, BlendParam::Zero, BlendParam::One, BlendParam::Zero }
+    , m_cullMode(CullMode::Back)
 {
 }
 
@@ -170,6 +171,16 @@ void Material::SetBlendColor(Color blendColor)
     m_blendColor = blendColor;
 }
 
+Material::CullMode Material::GetCullMode() const
+{
+    return m_cullMode;
+}
+
+void Material::SetCullMode(CullMode cullmode)
+{
+    m_cullMode = cullmode;
+}
+
 void Material::Use(OverrideFlags overrideFlags) const
 {
     assert(m_shaderProgram);
@@ -202,6 +213,12 @@ void Material::Use(OverrideFlags overrideFlags) const
     if ((overrideFlags & OverrideFlags::OverrideBlend) == 0)
     {
         UseBlend();
+    }
+
+    // If not skipped, set the blend settings
+    if ((overrideFlags & OverrideFlags::OverrideCulling) == 0)
+    {
+        UseCulling();
     }
 }
 
@@ -241,6 +258,11 @@ void Material::UseStencilTest() const
         glStencilFuncSeparate(GL_FRONT, static_cast<GLenum>(m_stencilTestFunctions[0]), m_stencilRefValues[0], m_stencilMasks[0]);
         glStencilFuncSeparate(GL_BACK, static_cast<GLenum>(m_stencilTestFunctions[1]), m_stencilRefValues[1], m_stencilMasks[1]);
     }
+}
+
+void Material::UseCulling() const
+{
+    glCullFace(static_cast<GLenum>(m_cullMode));
 }
 
 void Material::UseBlend() const

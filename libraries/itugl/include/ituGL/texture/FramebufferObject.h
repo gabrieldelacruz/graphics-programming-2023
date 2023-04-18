@@ -4,6 +4,7 @@
 #include <span>
 #include <memory>
 
+class TextureObject;
 class Texture2DObject;
 
 // Abstract OpenGL object that encapsulates a Framebuffer
@@ -27,6 +28,7 @@ public:
     static void Unbind();
     static void Unbind(Target target);
 
+    void SetTexture(Target target, Attachment attachment, const TextureObject& texture, int level = 0);
     void SetTexture(Target target, Attachment attachment, const Texture2DObject& texture, int level = 0);
 
     void SetDrawBuffers(std::span<const Attachment> attachments);

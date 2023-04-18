@@ -143,6 +143,10 @@ Renderer::UpdateLightsFunction Renderer::GetDefaultUpdateLightsFunction(const Sh
     ShaderProgram::Location lightPositionLocation = shaderProgram.GetUniformLocation("LightPosition");
     ShaderProgram::Location lightDirectionLocation = shaderProgram.GetUniformLocation("LightDirection");
     ShaderProgram::Location lightAttenuationLocation = shaderProgram.GetUniformLocation("LightAttenuation");
+    ShaderProgram::Location LightShadowEnabledLocation = shaderProgram.GetUniformLocation("LightShadowEnabled");
+    ShaderProgram::Location lightShadowMapLocation = shaderProgram.GetUniformLocation("LightShadowMap");
+    ShaderProgram::Location lightShadowMatrixLocation = shaderProgram.GetUniformLocation("LightShadowMatrix");
+    ShaderProgram::Location lightShadowBiasLocation = shaderProgram.GetUniformLocation("LightShadowBias");
 
     return [=](const ShaderProgram& shaderProgram, std::span<const Light* const> lights, unsigned int& lightIndex) -> bool
     {
@@ -157,6 +161,16 @@ Renderer::UpdateLightsFunction Renderer::GetDefaultUpdateLightsFunction(const Sh
             shaderProgram.SetUniform(lightPositionLocation, light.GetPosition());
             shaderProgram.SetUniform(lightDirectionLocation, light.GetDirection());
             shaderProgram.SetUniform(lightAttenuationLocation, light.GetAttenuation());
+            shaderProgram.SetUniform(lightAttenuationLocation, light.GetAttenuation());
+
+            std::shared_ptr<const TextureObject> shadowMap = light.GetShadowMap();
+            shaderProgram.SetUniform(LightShadowEnabledLocation, shadowMap ? 1 : 0);
+            if (shadowMap)
+            {
+                shaderProgram.SetTexture(lightShadowMapLocation, 8, *shadowMap);
+                shaderProgram.SetUniform(lightShadowMatrixLocation, light.GetShadowMatrix());
+                shaderProgram.SetUniform(lightShadowBiasLocation, light.GetShadowBias());
+            }
             needsRender = true;
         }
         else

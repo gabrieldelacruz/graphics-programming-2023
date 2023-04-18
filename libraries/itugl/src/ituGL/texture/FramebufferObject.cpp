@@ -53,6 +53,19 @@ std::shared_ptr<const FramebufferObject> FramebufferObject::GetDefault()
     return FramebufferObject::s_defaultFramebuffer;
 }
 
+void FramebufferObject::SetTexture(Target target, Attachment attachment, const TextureObject& texture, int level)
+{
+    switch (texture.GetTarget())
+    {
+    case TextureObject::Texture2D:
+        SetTexture(target, attachment, static_cast<const Texture2DObject&>(texture), level);
+        break;
+    default:
+        assert(false);
+        break;
+    }
+}
+
 void FramebufferObject::SetTexture(Target target, Attachment attachment, const Texture2DObject& texture, int level)
 {
     glFramebufferTexture2D(static_cast<GLenum>(target), static_cast<GLenum>(attachment), texture.GetTarget(), texture.GetHandle(), level);

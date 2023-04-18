@@ -26,7 +26,8 @@ public:
     // Set the window that OpenGL will use for rendering
     void SetCurrentWindow(Window &window);
 
-    // Set the dimensions of the viewport
+    // The dimensions of the viewport
+    void GetViewport(GLint& x, GLint& y, GLsizei& width, GLsizei& height) const;
     void SetViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 
     // Poll the events in the window event queue

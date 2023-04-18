@@ -233,6 +233,7 @@ bool ShaderUniformCollection::IsTextureUniform(GLenum glType, TextureObject::Tar
         target = TextureObject::Target::Texture1DArray;
         break;
     case GL_SAMPLER_2D:
+    case GL_SAMPLER_2D_SHADOW:
         target = TextureObject::Target::Texture2D;
         break;
     case GL_SAMPLER_2D_ARRAY:

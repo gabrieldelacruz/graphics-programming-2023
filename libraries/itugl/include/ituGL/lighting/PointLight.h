@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ituGL/lighting/Light.h>
-#include <glm/vec2.hpp>
 
 class PointLight : public Light
 {
@@ -18,6 +17,8 @@ public:
 
     glm::vec2 GetDistanceAttenuation() const;
     void SetDistanceAttenuation(glm::vec2 attenuation);
+
+    bool CreateShadowMap(glm::ivec2 resolution) override;
 
 private:
     glm::vec3 m_position;

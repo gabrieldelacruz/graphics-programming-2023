@@ -16,7 +16,8 @@ public:
         NoOverride = 0,
         OverrideBlend = 1 << 0,
         OverrideDepthTest = 1 << 1,
-        OverrideStencilTest = 1 << 2
+        OverrideStencilTest = 1 << 2,
+        OverrideCulling = 1 << 3
     };
 
     // Different conditions for depth and stencil tests
@@ -31,6 +32,9 @@ public:
     // Parameters to be used to control each of the 4 components of the blending equation:
     // source color, destination color, source alpha, destination alpha
     enum class BlendParam : GLenum;
+
+    // Which faces will be culled
+    enum class CullMode : GLenum;
 
     // Function pointer to prepare the shader used by the material that is being rendered
     using ShaderSetupFunction = std::function<void(ShaderProgram&)>;
@@ -101,6 +105,9 @@ public:
     // Set the blend color to use with ConstantColor param
     void SetBlendColor(Color blendColor);
 
+    // Set the face culling mode
+    CullMode GetCullMode() const;
+    void SetCullMode(CullMode cullmode);
 
     // Use the shader program, set all uniforms, set depth properties, stencil properties, and blending
     // You can skip depth, stencil or blending using the override flags
@@ -115,6 +122,9 @@ private:
 
     // Set all the properties relative to blending
     void UseBlend() const;
+
+    // Set all the properties relative to face culling
+    void UseCulling() const;
 
 private:
     // Function pointer to prepare the shader used by the material
@@ -150,6 +160,9 @@ private:
     // Blend parameters for source color, destination color, source alpha and destination alpha
     // Default: One, Zero, One, Zero
     std::array<BlendParam, 4> m_blendParams;
+
+    // Set face culling mode
+    CullMode m_cullMode;
 
     // Blend color to use with ConstantColor or ConstantAlpha parameters. Default: white
     Color m_blendColor;
@@ -218,4 +231,12 @@ enum class Material::BlendParam : GLenum
     OneMinusConstantColor = GL_ONE_MINUS_CONSTANT_COLOR,
     ConstantAlpha = GL_CONSTANT_ALPHA,
     OneMinusConstantAlpha = GL_ONE_MINUS_CONSTANT_ALPHA
+};
+
+enum class Material::CullMode : GLenum
+{
+    None = GL_NONE,
+    Back = GL_BACK,
+    Front = GL_FRONT,
+    Both = GL_FRONT_AND_BACK
 };

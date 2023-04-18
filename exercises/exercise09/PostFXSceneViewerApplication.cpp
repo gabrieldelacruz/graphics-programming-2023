@@ -19,6 +19,7 @@
 #include <ituGL/renderer/SkyboxRenderPass.h>
 #include <ituGL/renderer/GBufferRenderPass.h>
 #include <ituGL/renderer/DeferredRenderPass.h>
+#include <ituGL/renderer/ShadowMapRenderPass.h>
 #include <ituGL/renderer/PostFXRenderPass.h>
 #include <ituGL/scene/RendererSceneVisitor.h>
 
@@ -117,10 +118,49 @@ void PostFXSceneViewerApplication::InitializeLights()
     //pointLight->SetPosition(glm::vec3(0, 0, 0));
     //pointLight->SetDistanceAttenuation(glm::vec2(5.0f, 10.0f));
     //m_scene.AddSceneNode(std::make_shared<SceneLight>("point light", pointLight));
+
+    m_mainLight = directionalLight;
 }
 
 void PostFXSceneViewerApplication::InitializeMaterials()
 {
+    // Shadow map material
+    {
+        // Load and build shader
+        std::vector<const char*> vertexShaderPaths;
+        vertexShaderPaths.push_back("shaders/version330.glsl");
+        vertexShaderPaths.push_back("shaders/renderer/empty.vert");
+        Shader vertexShader = ShaderLoader(Shader::VertexShader).Load(vertexShaderPaths);
+
+        std::vector<const char*> fragmentShaderPaths;
+        fragmentShaderPaths.push_back("shaders/version330.glsl");
+        fragmentShaderPaths.push_back("shaders/renderer/empty.frag");
+        Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths);
+
+        std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
+        shaderProgramPtr->Build(vertexShader, fragmentShader);
+
+        // Get transform related uniform locations
+        ShaderProgram::Location worldViewProjMatrixLocation = shaderProgramPtr->GetUniformLocation("WorldViewProjMatrix");
+
+        // Register shader with renderer
+        m_renderer.RegisterShaderProgram(shaderProgramPtr,
+            [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
+            {
+                shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
+            },
+            nullptr
+        );
+
+        // Filter out uniforms that are not material properties
+        ShaderUniformCollection::NameSet filteredUniforms;
+        filteredUniforms.insert("WorldViewProjMatrix");
+
+        // Create material
+        m_shadowMapMaterial = std::make_shared<Material>(shaderProgramPtr, filteredUniforms);
+        m_shadowMapMaterial->SetCullMode(Material::CullMode::Front);
+    }
+
     // G-buffer material
     {
         // Load and build shader
@@ -299,6 +339,19 @@ void PostFXSceneViewerApplication::InitializeRenderer()
 {
     int width, height;
     GetMainWindow().GetDimensions(width, height);
+
+    // Add shadow map pass
+    if (m_mainLight)
+    {
+        if (!m_mainLight->GetShadowMap())
+        {
+            m_mainLight->CreateShadowMap(glm::vec2(512, 512));
+            m_mainLight->SetShadowBias(0.001f);
+        }
+        std::unique_ptr<ShadowMapRenderPass> shadowMapRenderPass(std::make_unique<ShadowMapRenderPass>(m_mainLight, m_shadowMapMaterial));
+        shadowMapRenderPass->SetVolume(glm::vec3(-3.0f * m_mainLight->GetDirection()), glm::vec3(6.0f));
+        m_renderer.AddRenderPass(std::move(shadowMapRenderPass));
+    }
 
     // Set up deferred passes
     {
