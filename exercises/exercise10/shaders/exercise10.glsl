@@ -1,6 +1,6 @@
 
 // Uniforms
-// TODO 10.1 : Replace constants with uniforms with the same name
+// Replace constants with uniforms with the same name
 uniform vec3 SphereColor = vec3(0, 0, 1);
 uniform vec3 SphereCenter = vec3(-2, 0, -10);
 uniform float SphereRadius = 1.25f;
@@ -28,11 +28,11 @@ float GetDistance(vec3 p, inout Output o)
 	// Box with worldView transform "BoxMatrix" and dimensions "BoxSize"
 	float dBox = BoxSDF(TransformToLocalPoint(p, BoxMatrix), BoxSize);
 
-	// TODO 10.2 : Replace Union with SmoothUnion and try different small values of smoothness
+	// Replace Union with SmoothUnion and try different small values of smoothness
 	float blend;
 	float d = SmoothUnion(dSphere, dBox, Smoothness, blend);
 
-	// TODO 10.2 : Replace this with a mix, using the blend factor from SmoothUnion
+	// Replace this with a mix, using the blend factor from SmoothUnion
 	o.color = mix(SphereColor, BoxColor, blend);
 
 	return d;
