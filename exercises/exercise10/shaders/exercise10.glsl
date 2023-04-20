@@ -1,13 +1,13 @@
 
 // Uniforms
 // TODO 10.1 : Replace constants with uniforms with the same name
-const vec3 SphereColor = vec3(0, 0, 1);
-const vec3 SphereCenter = vec3(-2, 0, -10);
-const float SphereRadius = 1.25f;
+uniform vec3 SphereColor = vec3(0, 0, 1);
+uniform vec3 SphereCenter = vec3(-2, 0, -10);
+uniform float SphereRadius = 1.25f;
 
-const vec3 BoxColor = vec3(1, 0, 0);
-const mat4 BoxMatrix = mat4(1,0,0,0,   0,1,0,0,   0,0,1,0,   2,0,-10,1);
-const vec3 BoxSize = vec3(1, 1, 1);
+uniform vec3 BoxColor = vec3(1, 0, 0);
+uniform mat4 BoxMatrix = mat4(1,0,0,0,   0,1,0,0,   0,0,1,0,   2,0,-10,1);
+uniform vec3 BoxSize = vec3(1, 1, 1);
 
 // Output structure
 struct Output

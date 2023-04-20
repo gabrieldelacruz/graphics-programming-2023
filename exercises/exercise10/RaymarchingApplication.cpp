@@ -86,6 +86,12 @@ void RaymarchingApplication::InitializeMaterial()
     m_material = CreateRaymarchingMaterial("shaders/exercise10.glsl");
 
     // (todo) 10.X: Initialize material uniforms
+    m_material->SetUniformValue("SphereCenter", glm::vec3(-2, 0, -10));
+    m_material->SetUniformValue("SphereRadius", 1.25f);
+    m_material->SetUniformValue("SphereColor", glm::vec3(0, 0, 1));
+    m_material->SetUniformValue("BoxMatrix", glm::translate(glm::vec3(2, 0, -10)));
+    m_material->SetUniformValue("BoxSize", glm::vec3(1, 1, 1));
+    m_material->SetUniformValue("BoxColor", glm::vec3(1, 0, 0));
 }
 
 void RaymarchingApplication::InitializeRenderer()
@@ -133,6 +139,9 @@ void RaymarchingApplication::RenderGUI()
         if (ImGui::TreeNodeEx("Sphere", ImGuiTreeNodeFlags_DefaultOpen))
         {
             // (todo) 10.1: Add controls for sphere parameters
+            ImGui::DragFloat3("Center", m_material->GetDataUniformPointer<float>("SphereCenter"), 0.1f);
+            ImGui::DragFloat("Radius", m_material->GetDataUniformPointer<float>("SphereRadius"), 0.1f);
+            ImGui::ColorEdit3("Color", m_material->GetDataUniformPointer<float>("SphereColor"));
 
             ImGui::TreePop();
         }
@@ -142,6 +151,10 @@ void RaymarchingApplication::RenderGUI()
             static glm::vec3 rotation(0.0f);
 
             // (todo) 10.1: Add controls for box parameters
+            ImGui::DragFloat3("Translation", &translation[0], 0.1f);
+            ImGui::DragFloat3("Rotation", &rotation[0], 0.1f);
+            m_material->SetUniformValue("BoxMatrix", glm::translate(translation) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z));
+            ImGui::DragFloat3("Size", m_material->GetDataUniformPointer<float>("BoxSize"), 0.1f);
 
             ImGui::TreePop();
         }
