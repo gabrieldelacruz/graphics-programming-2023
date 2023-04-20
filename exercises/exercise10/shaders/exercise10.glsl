@@ -9,6 +9,8 @@ uniform vec3 BoxColor = vec3(1, 0, 0);
 uniform mat4 BoxMatrix = mat4(1,0,0,0,   0,1,0,0,   0,0,1,0,   2,0,-10,1);
 uniform vec3 BoxSize = vec3(1, 1, 1);
 
+uniform float Smoothness;
+
 // Output structure
 struct Output
 {
@@ -27,10 +29,11 @@ float GetDistance(vec3 p, inout Output o)
 	float dBox = BoxSDF(TransformToLocalPoint(p, BoxMatrix), BoxSize);
 
 	// TODO 10.2 : Replace Union with SmoothUnion and try different small values of smoothness
-	float d = Union(dSphere, dBox);
+	float blend;
+	float d = SmoothUnion(dSphere, dBox, Smoothness, blend);
 
 	// TODO 10.2 : Replace this with a mix, using the blend factor from SmoothUnion
-	o.color = d == dSphere ? SphereColor : BoxColor;
+	o.color = mix(SphereColor, BoxColor, blend);
 
 	return d;
 }

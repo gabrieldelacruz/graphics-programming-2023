@@ -92,6 +92,7 @@ void RaymarchingApplication::InitializeMaterial()
     m_material->SetUniformValue("BoxMatrix", glm::translate(glm::vec3(2, 0, -10)));
     m_material->SetUniformValue("BoxSize", glm::vec3(1, 1, 1));
     m_material->SetUniformValue("BoxColor", glm::vec3(1, 0, 0));
+    m_material->SetUniformValue("Smoothness", 0.25f);
 }
 
 void RaymarchingApplication::InitializeRenderer()
@@ -158,6 +159,8 @@ void RaymarchingApplication::RenderGUI()
 
             ImGui::TreePop();
         }
+
+        ImGui::DragFloat("Smoothness", m_material->GetDataUniformPointer<float>("Smoothness"), 0.1f);
     }
 
     m_imGui.EndFrame();
