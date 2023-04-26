@@ -127,8 +127,10 @@ protected:
 #endif
 };
 
+#ifndef NDEBUG
 template<TextureObject::Target T>
 Object::Handle TextureObjectBase<T>::s_boundHandle = Object::NullHandle;
+#endif
 
 template<TextureObject::Target T>
 void TextureObjectBase<T>::Bind() const

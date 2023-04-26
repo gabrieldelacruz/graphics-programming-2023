@@ -28,7 +28,7 @@ float ClampedDot(vec3 v1, vec3 v2)
 //
 vec3 GetImplicitNormal(vec2 normal)
 {
-	float z = sqrt(1.0f - normal.x * normal.x - normal.y * normal.y);
+	float z = sqrt(max(1.0f - normal.x * normal.x - normal.y * normal.y, 0.0f));
 	return vec3(normal, z);
 }
 
@@ -64,6 +64,8 @@ vec3 ReconstructViewPosition(sampler2D depthTexture, vec2 texCoord, mat4 invProj
 {
 	// Reconstruct the position, using the screen texture coordinates and the depth
 	float depth = texture(depthTexture, texCoord).r;
+	if (depth == 1)
+		discard;
 	vec3 clipPosition = vec3(texCoord, depth) * 2.0f - vec3(1.0f);
 	vec4 viewPosition = invProjMatrix * vec4(clipPosition, 1.0f);
 	return viewPosition.xyz / viewPosition.w;
