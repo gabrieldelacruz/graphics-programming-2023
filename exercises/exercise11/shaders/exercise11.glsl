@@ -96,7 +96,6 @@ Ray GetDerivedRay(Ray ray, vec3 position, vec3 direction)
 vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 {
 	// (todo) 11.1: Find the position where the ray hit the surface
-	vec3 contactPosition = ray.point + ray.direction * distance;
 
 	// (todo) 11.1: Add a ray to compute the diffuse lighting
 
