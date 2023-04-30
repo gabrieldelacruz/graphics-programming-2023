@@ -27,8 +27,8 @@ struct Material
 	vec3 emissive;
 };
 
-Material SphereMaterial = Material(SphereColor, /* roughness */0.0f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
-Material BoxMaterial = Material(BoxColor, /* roughness */0.0f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
+Material SphereMaterial = Material(SphereColor, /* roughness */0.5f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
+Material BoxMaterial = Material(BoxColor, /* roughness */0.0f, /* metalness */1.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
 
 Material CornellMaterial = Material(/* color */vec3(1.0f), /* roughness */0.75f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
 Material LightMaterial = Material(vec3(0.0f), 0.0f, 0.0f, 0.0f, /* emissive */LightIntensity * LightColor);
@@ -109,8 +109,10 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 	PushRay(diffuseRay);
 
 	// Add a ray to compute the specular lighting
+	float roughness = material.roughness * material.roughness;
 	vec3 reflectedDirection = GetSpecularReflectionDirection(ray, normal);
-	Ray specularRay = GetDerivedRay(ray, contactPosition, reflectedDirection);
+	vec3 specularDirection = mix(reflectedDirection, diffuseDirection, roughness);
+	Ray specularRay = GetDerivedRay(ray, contactPosition, specularDirection);
 	specularRay.colorFilter *= fresnel;
 	PushRay(specularRay);
 
