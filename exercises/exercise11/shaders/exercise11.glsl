@@ -27,8 +27,8 @@ struct Material
 	vec3 emissive;
 };
 
-Material SphereMaterial = Material(SphereColor, /* roughness */0.0f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
-Material BoxMaterial = Material(BoxColor, /* roughness */0.0f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
+Material SphereMaterial = Material(SphereColor, /* roughness */0.0f, /* metalness */0.0f, /* ior */1.35f, /* emissive */vec3(0.0f));
+Material BoxMaterial = Material(BoxColor, /* roughness */0.5f, /* metalness */0.0f, /* ior */1.1f, /* emissive */vec3(0.0f));
 
 Material CornellMaterial = Material(/* color */vec3(1.0f), /* roughness */0.75f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
 Material LightMaterial = Material(vec3(0.0f), 0.0f, 0.0f, 0.0f, /* emissive */LightIntensity * LightColor);
@@ -95,11 +95,36 @@ Ray GetDerivedRay(Ray ray, vec3 position, vec3 direction)
 // Produce a color value after computing the intersection
 vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 {
-	// (todo) 11.1: Find the position where the ray hit the surface
+	// Find the position where the ray hit the surface
+	vec3 contactPosition = ray.point + distance * ray.direction;
 
-	// (todo) 11.1: Add a ray to compute the diffuse lighting
+	// Compute the fresnel
+	vec3 fresnel = FresnelSchlick(GetReflectance(material), -ray.direction, normal);
 
-	// (todo) 11.2: Add a ray to compute the specular lighting
+	// Compute transparency
+	bool isTransparent = material.ior != 0.0f;
+	bool isExit = ray.ior != 1.0f;
+	float ior = mix(1.0f, material.ior, isTransparent && !isExit);
+	vec3 refractedDirection = GetRefractedDirection(ray, normal, ray.ior / ior);
+
+	// Add a ray to compute the diffuse lighting
+	vec3 diffuseDirection = GetDiffuseReflectionDirection(ray, normal);
+	Ray diffuseRay = GetDerivedRay(ray, contactPosition, isTransparent ? refractedDirection : diffuseDirection);
+	if (!isExit)
+	{
+		diffuseRay.colorFilter *= GetAlbedo(material);
+	}
+	diffuseRay.colorFilter *= (1.0f - fresnel);
+	diffuseRay.ior = ior;
+	PushRay(diffuseRay);
+
+	// Add a ray to compute the specular lighting
+	float roughness = material.roughness * material.roughness;
+	vec3 reflectedDirection = GetSpecularReflectionDirection(ray, normal);
+	vec3 specularDirection = mix(reflectedDirection, diffuseDirection, roughness);
+	Ray specularRay = GetDerivedRay(ray, contactPosition, specularDirection);
+	specularRay.colorFilter *= fresnel;
+	PushRay(specularRay);
 
 	// Return emissive light, after applying the ray color filter
 	return ray.colorFilter * material.emissive;
@@ -108,5 +133,5 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 // Configure ray tracer
 void GetRayTracerConfig(out uint maxRays)
 {
-	maxRays = 2u;
+	maxRays = 14u;
 }

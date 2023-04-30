@@ -26,9 +26,9 @@ void main()
 	// Raytrace the scene
 	vec3 color = RayTrace(origin, dir);
 
-	// (todo) 11.3: Compute the alpha to blend between frames of the path tracer
-
-	FragColor = vec4(color, 1.0f);
+	// Compute the alpha to blend between frames of the path tracer
+	float alpha = 1.0f / FrameCount;
+	FragColor = vec4(color, alpha);
 }
 
 
@@ -64,15 +64,13 @@ vec3 GetDiffuseReflectionDirection(Ray ray, vec3 normal)
 // Returns the direction of the ray reflected over the normal
 vec3 GetSpecularReflectionDirection(Ray ray, vec3 normal)
 {
-	// (todo) 11.2: Implement the reflection direction
-	return vec3(0);
+	return reflect(ray.direction, normal);
 }
 
 // Returns the direction of the ray refracted 
 vec3 GetRefractedDirection(Ray ray, vec3 normal, float f)
 {
-	// (todo) 11.5: Implement the refraction direction
-	return vec3(0);
+	return refract(ray.direction, normal, f);
 }
 
 vec3 GetAlbedo(Material material)
