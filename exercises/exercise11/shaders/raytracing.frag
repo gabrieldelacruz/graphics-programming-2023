@@ -26,9 +26,9 @@ void main()
 	// Raytrace the scene
 	vec3 color = RayTrace(origin, dir);
 
-	// (todo) 11.3: Compute the alpha to blend between frames of the path tracer
-
-	FragColor = vec4(color, 1.0f);
+	// Compute the alpha to blend between frames of the path tracer
+	float alpha = 1.0f / FrameCount;
+	FragColor = vec4(color, alpha);
 }
 
 

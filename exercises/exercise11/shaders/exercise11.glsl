@@ -102,12 +102,9 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 	vec3 fresnel = FresnelSchlick(GetReflectance(material), -ray.direction, normal);
 
 	// Add a ray to compute the diffuse lighting
-	vec3 lightPosition = TransformFromLocalPoint(vec3(0.0f, CornellBoxSize.y + 0.0001f, 0.0f), ViewMatrix);
-	vec3 lightDirection = GetDirection(contactPosition, lightPosition);
-	Ray diffuseRay = GetDerivedRay(ray, contactPosition, lightDirection);
+	vec3 diffuseDirection = GetDiffuseReflectionDirection(ray, normal);
+	Ray diffuseRay = GetDerivedRay(ray, contactPosition, diffuseDirection);
 	diffuseRay.colorFilter *= GetAlbedo(material);
-	diffuseRay.colorFilter *= ClampedDot(normal, lightDirection);
-	diffuseRay.colorFilter *= InvPi;
 	diffuseRay.colorFilter *= (1.0f - fresnel);
 	PushRay(diffuseRay);
 
