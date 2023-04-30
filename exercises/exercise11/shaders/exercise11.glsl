@@ -95,9 +95,17 @@ Ray GetDerivedRay(Ray ray, vec3 position, vec3 direction)
 // Produce a color value after computing the intersection
 vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 {
-	// (todo) 11.1: Find the position where the ray hit the surface
+	// Find the position where the ray hit the surface
+	vec3 contactPosition = ray.point + distance * ray.direction;
 
-	// (todo) 11.1: Add a ray to compute the diffuse lighting
+	// Add a ray to compute the diffuse lighting
+	vec3 lightPosition = TransformFromLocalPoint(vec3(0.0f, CornellBoxSize.y + 0.000f, 0.0f), ViewMatrix);
+	vec3 lightDirection = GetDirection(contactPosition, lightPosition);
+	Ray diffuseRay = GetDerivedRay(ray, contactPosition, lightDirection);
+	diffuseRay.colorFilter *= GetAlbedo(material);
+	diffuseRay.colorFilter *= dot(normal, lightDirection);
+	diffuseRay.colorFilter *= InvPi;
+	PushRay(diffuseRay);
 
 	// (todo) 11.2: Add a ray to compute the specular lighting
 
@@ -108,5 +116,5 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 // Configure ray tracer
 void GetRayTracerConfig(out uint maxRays)
 {
-	maxRays = 2u;
+	maxRays = 1u;
 }
