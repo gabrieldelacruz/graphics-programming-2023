@@ -98,7 +98,8 @@ void ShadowMapRenderPass::InitLightCamera(Camera& lightCamera) const
 {
     // View matrix
     glm::vec3 position = m_light->GetPosition(m_volumeCenter);
-    lightCamera.SetViewMatrix(position, position + m_light->GetDirection());
+    glm::vec3 direction = m_light->GetDirection();
+    lightCamera.SetViewMatrix(position, position + direction, std::abs(direction.y) < 0.9f ? glm::vec3(0, 1, 0) : glm::vec3(0, 0, 1));
 
     // Projection matrix
     glm::vec4 attenuation = m_light->GetAttenuation();
