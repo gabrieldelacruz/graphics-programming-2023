@@ -98,16 +98,24 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 	// Find the position where the ray hit the surface
 	vec3 contactPosition = ray.point + distance * ray.direction;
 
+	// Compute the fresnel
+	vec3 fresnel = FresnelSchlick(GetReflectance(material), -ray.direction, normal);
+
 	// Add a ray to compute the diffuse lighting
-	vec3 lightPosition = TransformFromLocalPoint(vec3(0.0f, CornellBoxSize.y + 0.000f, 0.0f), ViewMatrix);
+	vec3 lightPosition = TransformFromLocalPoint(vec3(0.0f, CornellBoxSize.y + 0.0001f, 0.0f), ViewMatrix);
 	vec3 lightDirection = GetDirection(contactPosition, lightPosition);
 	Ray diffuseRay = GetDerivedRay(ray, contactPosition, lightDirection);
 	diffuseRay.colorFilter *= GetAlbedo(material);
-	diffuseRay.colorFilter *= dot(normal, lightDirection);
+	diffuseRay.colorFilter *= ClampedDot(normal, lightDirection);
 	diffuseRay.colorFilter *= InvPi;
+	diffuseRay.colorFilter *= (1.0f - fresnel);
 	PushRay(diffuseRay);
 
-	// (todo) 11.2: Add a ray to compute the specular lighting
+	// Add a ray to compute the specular lighting
+	vec3 reflectedDirection = GetSpecularReflectionDirection(ray, normal);
+	Ray specularRay = GetDerivedRay(ray, contactPosition, reflectedDirection);
+	specularRay.colorFilter *= fresnel;
+	PushRay(specularRay);
 
 	// Return emissive light, after applying the ray color filter
 	return ray.colorFilter * material.emissive;
@@ -116,5 +124,5 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 // Configure ray tracer
 void GetRayTracerConfig(out uint maxRays)
 {
-	maxRays = 1u;
+	maxRays = 6u;
 }

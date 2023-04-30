@@ -64,8 +64,7 @@ vec3 GetDiffuseReflectionDirection(Ray ray, vec3 normal)
 // Returns the direction of the ray reflected over the normal
 vec3 GetSpecularReflectionDirection(Ray ray, vec3 normal)
 {
-	// (todo) 11.2: Implement the reflection direction
-	return vec3(0);
+	return reflect(ray.direction, normal);
 }
 
 // Returns the direction of the ray refracted 
