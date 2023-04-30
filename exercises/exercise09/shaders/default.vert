@@ -10,6 +10,7 @@ out vec3 ViewNormal;
 out vec3 ViewTangent;
 out vec3 ViewBitangent;
 out vec2 TexCoord;
+out vec3 ViewPosition;
 
 //Uniforms
 uniform mat4 WorldViewMatrix;
@@ -25,6 +26,8 @@ void main()
 
 	// bitangent in view space (for lighting computation)
 	ViewBitangent = (WorldViewMatrix * vec4(VertexBitangent, 0.0)).xyz;
+
+	ViewPosition = (WorldViewMatrix * vec4(VertexPosition, 1.0)).xyz;
 
 	// texture coordinates
 	TexCoord = VertexTexCoord;

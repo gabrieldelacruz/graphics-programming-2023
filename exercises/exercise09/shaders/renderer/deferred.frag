@@ -23,6 +23,11 @@ void main()
 	// Compute view vector en view space
 	vec3 viewDir = GetDirection(position, vec3(0));
 
+	vec3 tangent = cross(viewDir, vec3(0,1,0));
+	vec3 bitangent = cross(viewDir, tangent);
+	normal = normal.x * tangent + normal.y * bitangent + normal.z * viewDir;
+
+
 	// Convert position, normal and view vector to world space
 	position = (InvViewMatrix * vec4(position, 1)).xyz;
 	normal = (InvViewMatrix * vec4(normal, 0)).xyz;
