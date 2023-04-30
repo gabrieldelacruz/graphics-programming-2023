@@ -27,8 +27,8 @@ struct Material
 	vec3 emissive;
 };
 
-Material SphereMaterial = Material(SphereColor, /* roughness */0.5f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
-Material BoxMaterial = Material(BoxColor, /* roughness */0.0f, /* metalness */1.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
+Material SphereMaterial = Material(SphereColor, /* roughness */0.0f, /* metalness */0.0f, /* ior */1.35f, /* emissive */vec3(0.0f));
+Material BoxMaterial = Material(BoxColor, /* roughness */0.5f, /* metalness */0.0f, /* ior */1.1f, /* emissive */vec3(0.0f));
 
 Material CornellMaterial = Material(/* color */vec3(1.0f), /* roughness */0.75f, /* metalness */0.0f, /* ior */0.0f, /* emissive */vec3(0.0f));
 Material LightMaterial = Material(vec3(0.0f), 0.0f, 0.0f, 0.0f, /* emissive */LightIntensity * LightColor);
@@ -101,11 +101,21 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 	// Compute the fresnel
 	vec3 fresnel = FresnelSchlick(GetReflectance(material), -ray.direction, normal);
 
+	// Compute transparency
+	bool isTransparent = material.ior != 0.0f;
+	bool isExit = ray.ior != 1.0f;
+	float ior = mix(1.0f, material.ior, isTransparent && !isExit);
+	vec3 refractedDirection = GetRefractedDirection(ray, normal, ray.ior / ior);
+
 	// Add a ray to compute the diffuse lighting
 	vec3 diffuseDirection = GetDiffuseReflectionDirection(ray, normal);
-	Ray diffuseRay = GetDerivedRay(ray, contactPosition, diffuseDirection);
-	diffuseRay.colorFilter *= GetAlbedo(material);
+	Ray diffuseRay = GetDerivedRay(ray, contactPosition, isTransparent ? refractedDirection : diffuseDirection);
+	if (!isExit)
+	{
+		diffuseRay.colorFilter *= GetAlbedo(material);
+	}
 	diffuseRay.colorFilter *= (1.0f - fresnel);
+	diffuseRay.ior = ior;
 	PushRay(diffuseRay);
 
 	// Add a ray to compute the specular lighting
@@ -123,5 +133,5 @@ vec3 ProcessOutput(Ray ray, float distance, vec3 normal, Material material)
 // Configure ray tracer
 void GetRayTracerConfig(out uint maxRays)
 {
-	maxRays = 6u;
+	maxRays = 14u;
 }

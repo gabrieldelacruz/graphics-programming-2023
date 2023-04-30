@@ -70,8 +70,7 @@ vec3 GetSpecularReflectionDirection(Ray ray, vec3 normal)
 // Returns the direction of the ray refracted 
 vec3 GetRefractedDirection(Ray ray, vec3 normal, float f)
 {
-	// (todo) 11.5: Implement the refraction direction
-	return vec3(0);
+	return refract(ray.direction, normal, f);
 }
 
 vec3 GetAlbedo(Material material)
