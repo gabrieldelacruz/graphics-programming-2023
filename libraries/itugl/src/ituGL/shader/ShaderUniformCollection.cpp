@@ -381,14 +381,14 @@ void ShaderUniformCollection::UseUniform<float>(const DataUniform& uniform) cons
 }
 
 template<>
-void ShaderUniformCollection::GetUniformValue(ShaderProgram::Location location, std::shared_ptr<TextureObject>& value) const
+void ShaderUniformCollection::GetUniformValue(ShaderProgram::Location location, std::shared_ptr<const TextureObject>& value) const
 {
     const TextureUniform& uniform = GetTextureUniform(location);
     value = uniform.texture;
 }
 
 template<>
-void ShaderUniformCollection::SetUniformValue(ShaderProgram::Location location, const std::shared_ptr<TextureObject>& value)
+void ShaderUniformCollection::SetUniformValue(ShaderProgram::Location location, const std::shared_ptr<const TextureObject>& value)
 {
     TextureUniform& uniform = GetTextureUniform(location);
     assert(!value || uniform.target == value->GetTarget());

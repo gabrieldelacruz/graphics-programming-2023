@@ -106,7 +106,7 @@ private:
         // Texture subtype
         TextureObject::Target target;
         // Shared pointer to the texture object
-        std::shared_ptr<TextureObject> texture;
+        std::shared_ptr<const TextureObject> texture;
     };
 
 private:
@@ -230,13 +230,13 @@ inline void ShaderUniformCollection::GetUniformValue(ShaderProgram::Location loc
 template<typename T>
 void ShaderUniformCollection::GetUniformValue(ShaderProgram::Location location, std::shared_ptr<T>& value) const
 {
-    std::shared_ptr<TextureObject> textureValue;
+    std::shared_ptr<const TextureObject> textureValue;
     GetUniformValue(location, textureValue);
     value = textureValue;
 }
 
 template<>
-void ShaderUniformCollection::GetUniformValue(ShaderProgram::Location location, std::shared_ptr<TextureObject>& value) const;
+void ShaderUniformCollection::GetUniformValue(ShaderProgram::Location location, std::shared_ptr<const TextureObject>& value) const;
 
 template<typename T>
 inline void ShaderUniformCollection::GetUniformValues(const char* name, std::span<T> values) const
@@ -275,12 +275,12 @@ inline void ShaderUniformCollection::SetUniformValue(ShaderProgram::Location loc
 template<typename T>
 void ShaderUniformCollection::SetUniformValue(ShaderProgram::Location location, const std::shared_ptr<T>& value)
 {
-    std::shared_ptr<TextureObject> textureValue = value;
+    std::shared_ptr<const TextureObject> textureValue = value;
     SetUniformValue(location, textureValue);
 }
 
 template<>
-void ShaderUniformCollection::SetUniformValue(ShaderProgram::Location location, const std::shared_ptr<TextureObject>& value);
+void ShaderUniformCollection::SetUniformValue(ShaderProgram::Location location, const std::shared_ptr<const TextureObject>& value);
 
 template<typename T>
 inline void ShaderUniformCollection::SetUniformValues(const char* name, std::span<const T> values)
