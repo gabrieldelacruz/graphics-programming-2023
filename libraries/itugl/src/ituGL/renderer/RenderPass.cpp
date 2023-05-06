@@ -4,8 +4,8 @@
 #include <cassert>
 
 RenderPass::RenderPass(std::shared_ptr<const FramebufferObject> targetFramebuffer)
-    : m_renderer(nullptr)
-    , m_targetFramebuffer(targetFramebuffer)
+    : m_targetFramebuffer(targetFramebuffer)
+    , m_renderer(nullptr)
 {
 }
 

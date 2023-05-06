@@ -10,12 +10,12 @@
 
 ViewerApplication::ViewerApplication()
     : Application(1024, 1024, "Viewer demo")
+    , m_mousePosition(GetMainWindow().GetMousePosition(true))
     , m_cameraPosition(0, 30, 30)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
     , m_cameraEnabled(false)
     , m_cameraEnablePressed(false)
-    , m_mousePosition(GetMainWindow().GetMousePosition(true))
     , m_ambientColor(0.0f)
     , m_lightColor(0.0f)
     , m_lightIntensity(0.0f)

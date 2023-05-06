@@ -19,7 +19,6 @@ void ForwardRenderPass::Render()
 {
     Renderer& renderer = GetRenderer();
 
-    const Camera& camera = renderer.GetCurrentCamera();
     const auto& lights = renderer.GetLights();
     const auto& drawcallCollection = renderer.GetDrawcalls(m_drawcallCollectionIndex);
 

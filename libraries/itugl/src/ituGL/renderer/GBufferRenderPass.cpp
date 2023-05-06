@@ -81,8 +81,6 @@ void GBufferRenderPass::Render()
 {
     Renderer& renderer = GetRenderer();
 
-    const Camera& camera = renderer.GetCurrentCamera();
-    const auto& lights = renderer.GetLights();
     const auto& drawcallCollection = renderer.GetDrawcalls(m_drawcallCollectionIndex);
 
     renderer.GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);

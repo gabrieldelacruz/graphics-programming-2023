@@ -46,7 +46,7 @@ void DeferredRenderPass::Render()
         // Set the render states for the first and additional lights
         renderer.SetLightingRenderStates(first);
 
-        renderer.UpdateTransforms(shaderProgram, fullscreenMatrix, first);
+        renderer.UpdateTransforms(shaderProgram, worldMatrix, first);
         mesh->DrawSubmesh(0);
         first = false;
     }

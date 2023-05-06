@@ -16,10 +16,10 @@
 
 RaytracingApplication::RaytracingApplication()
     : Application(1024, 1024, "Ray-tracing demo")
-    , m_renderer(GetDevice())
     , m_frameCount(0)
     , m_sphereCenter(-3, 0, 0)
     , m_boxMatrix(glm::translate(glm::vec3(3, 0, 0)))
+    , m_renderer(GetDevice())
 {
 }
 

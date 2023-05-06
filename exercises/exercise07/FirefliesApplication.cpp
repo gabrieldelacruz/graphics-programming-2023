@@ -13,12 +13,12 @@
 FirefliesApplication::FirefliesApplication()
     : Application(1024, 1024, "Fireflies demo")
     , m_renderMode(RenderMode::Deferred)
-    , m_renderer(GetDevice())
     , m_mouseClicked(false)
     , m_ambientColor(0.0f)
     , m_lightColor(0.0f)
     , m_lightIntensity(0.0f)
     , m_useRandomColor(false)
+    , m_renderer(GetDevice())
 {
 }
 
